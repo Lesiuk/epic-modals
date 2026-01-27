@@ -1,0 +1,238 @@
+.modal-dock-container {
+  position: fixed;
+}
+.modal-dock-container.modal-dock-empty {
+  pointer-events: none;
+  opacity: 0;
+}
+.modal-dock-container.modal-dock-free {
+  transform: none;
+}
+.modal-dock-container.modal-dock-bottom {
+  bottom: 1.25rem;
+  left: 50%;
+  transform: translateX(-50%);
+}
+.modal-dock-container.modal-dock-bottom .modal-dock {
+  flex-direction: row;
+  align-items: flex-end;
+}
+.modal-dock-container.modal-dock-left {
+  left: 1.25rem;
+  top: 50%;
+  transform: translateY(-50%);
+}
+.modal-dock-container.modal-dock-left .modal-dock {
+  flex-direction: column;
+  align-items: stretch;
+}
+.modal-dock-container.modal-dock-right {
+  right: 1.25rem;
+  top: 50%;
+  transform: translateY(-50%);
+}
+.modal-dock-container.modal-dock-right .modal-dock {
+  flex-direction: column;
+  align-items: stretch;
+}
+.modal-dock {
+  display: flex;
+  gap: var(--modal-dock-gap);
+  padding: var(--modal-dock-padding);
+  background: var(--modal-dock-bg);
+  border: 1px solid var(--modal-dock-border);
+  border-radius: var(--modal-dock-border-radius);
+  box-shadow: var(--modal-dock-shadow);
+}
+.modal-dock.modal-dock-free-horizontal {
+  flex-direction: row;
+  align-items: center;
+}
+.modal-dock.modal-dock-free-vertical {
+  flex-direction: column;
+  align-items: stretch;
+}
+
+.modal-dock-handle {
+  flex: 0 0 auto;
+  width: 22px;
+  height: 44px;
+  padding: 0;
+  border-radius: 12px;
+  background: var(--modal-dock-handle-bg);
+  border: 1px solid var(--modal-dock-handle-border);
+  cursor: grab;
+  opacity: 0.85;
+  position: relative;
+  appearance: none;
+  touch-action: none;
+}
+.modal-dock-handle:hover {
+  opacity: 1;
+  border-color: var(--modal-dock-item-hover-border);
+}
+.modal-dock-handle.modal-dock-handle-dragging {
+  cursor: grabbing;
+  opacity: 1;
+}
+.modal-dock-handle::before {
+  content: '';
+  position: absolute;
+  inset: 8px 6px;
+  background-image: radial-gradient(var(--modal-dock-handle-dots) 1px, transparent 1px);
+  background-size: 7px 7px;
+  background-position: center;
+  opacity: 0.6;
+}
+.modal-dock.modal-dock-free-vertical .modal-dock-handle {
+  width: auto;
+  min-width: 44px;
+  height: 22px;
+  align-self: stretch;
+}
+.modal-dock.modal-dock-free-vertical .modal-dock-handle::before {
+  inset: 6px 8px;
+}
+
+.modal-dock-item {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--modal-dock-item-size);
+  height: var(--modal-dock-item-size);
+  padding: 0.375rem;
+  background: var(--modal-dock-item-bg);
+  border: 1px solid var(--modal-dock-item-border);
+  border-radius: var(--modal-dock-item-border-radius);
+  box-shadow: var(--modal-dock-item-shadow, none);
+  cursor: pointer;
+  transition: transform 0.15s ease-out, opacity 0.15s ease-out, background 0.2s, border-color 0.2s, box-shadow 0.2s;
+  overflow: visible;
+  touch-action: none;
+}
+.modal-dock-item:hover {
+  background: var(--modal-dock-item-hover-bg);
+  border-color: var(--modal-dock-item-hover-border);
+  box-shadow: var(--modal-dock-item-hover-shadow, 0 6px 16px rgba(0, 0, 0, 0.15), 0 2px 6px rgba(0, 0, 0, 0.1));
+}
+.modal-dock-item:hover .modal-dock-item-icon {
+  transform: scale(1.05);
+}
+.modal-dock-item:hover .modal-dock-item-glow {
+  opacity: 0.4;
+}
+.modal-dock-item:active {
+  transition-duration: 0.1s;
+}
+
+.modal-dock-container.modal-dock-bottom .modal-dock-item:hover {
+  transform: translateY(-4px) scale(1.05);
+}
+.modal-dock-container.modal-dock-bottom .modal-dock-item:active {
+  transform: translateY(-2px) scale(1.02);
+}
+.modal-dock-container.modal-dock-left .modal-dock-item:hover {
+  transform: translateX(4px) scale(1.05);
+}
+.modal-dock-container.modal-dock-left .modal-dock-item:active {
+  transform: translateX(2px) scale(1.02);
+}
+.modal-dock-container.modal-dock-right .modal-dock-item:hover {
+  transform: translateX(-4px) scale(1.05);
+}
+.modal-dock-container.modal-dock-right .modal-dock-item:active {
+  transform: translateX(-2px) scale(1.02);
+}
+
+.modal-dock-item-icon {
+  font-size: 1.25rem;
+  line-height: 1;
+  transition: transform 0.2s ease;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.15));
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.modal-dock-item-icon-placeholder {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--modal-dock-label-color);
+}
+
+.modal-dock-item-glow {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at center, currentColor, transparent 70%);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  pointer-events: none;
+  mix-blend-mode: soft-light;
+}
+
+.modal-dock-item-label {
+  font-size: var(--modal-dock-label-size);
+  font-weight: 500;
+  color: var(--modal-dock-label-color);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 80px;
+}
+
+.modal-dock-item.modal-dock-item-label-beside {
+  width: auto;
+  flex-direction: row;
+  gap: 0.5rem;
+  padding: 0.375rem 0.75rem 0.375rem 0.5rem;
+}
+.modal-dock-item.modal-dock-item-label-below {
+  width: auto;
+  min-width: 52px;
+  height: auto;
+  flex-direction: column;
+  gap: 0.25rem;
+  padding: 0.375rem 0.5rem;
+}
+.modal-dock-item.modal-dock-item-label-below .modal-dock-item-label {
+  font-size: 0.55rem;
+  max-width: 60px;
+}
+
+.modal-dock-item.modal-dock-item-has-glow {
+  --modal-dock-glow-color: 20, 184, 166;
+  border-color: rgba(var(--modal-dock-glow-color), 0.6);
+  box-shadow: 0 0 10px rgba(var(--modal-dock-glow-color), 0.5), 0 0 20px rgba(var(--modal-dock-glow-color), 0.3);
+}
+.modal-dock-item.modal-dock-item-has-glow .modal-dock-item-glow {
+  background: radial-gradient(circle at center, rgb(var(--modal-dock-glow-color)), transparent 60%);
+  animation: modal-dock-glow-pulse 2.5s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+.modal-dock-item.modal-dock-item-has-glow:hover .modal-dock-item-glow {
+  animation: none;
+  opacity: 0.8;
+}
+
+.modal-dock-child-indicator {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  width: 18px;
+  height: 18px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: #ffd54a;
+  border: 2px solid rgba(0, 0, 0, 0.25);
+  border-radius: 6px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.35);
+  color: #141822;
+  font-size: 0.7rem;
+}
+.modal-dock-item.modal-dock-item-has-child {
+  border-color: var(--modal-dock-item-hover-border);
+}
+.modal-dock-item.modal-dock-item-has-child:hover .modal-dock-child-indicator {
+  transform: scale(1.2);
+}

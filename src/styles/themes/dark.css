@@ -1,0 +1,22 @@
+:root {
+  --modal-bg: #1e1e2e;
+  --modal-bg-transparent: rgba(30, 30, 46, 0.9);
+  --modal-border: rgba(255, 255, 255, 0.1);
+  --modal-title-color: #f0f0f0;
+  --modal-content-color: #d0d0d0;
+  --modal-header-border: rgba(255, 255, 255, 0.08);
+  --modal-footer-border: rgba(255, 255, 255, 0.08);
+  --modal-dock-bg: linear-gradient(to bottom, #2a2a3e, #1e1e2e);
+  --modal-dock-border: rgba(255, 255, 255, 0.1);
+  --modal-dock-label-color: #e0e0e0;
+  --modal-btn-windows-color: #a0a0a0;
+  --modal-btn-windows-hover-bg: rgba(255, 255, 255, 0.1);
+  --modal-btn-windows-hover-color: #f0f0f0;
+  --modal-dock-item-bg: linear-gradient(145deg, rgba(255,255,255,0.05), transparent);
+  --modal-dock-item-border: rgba(255, 255, 255, 0.08);
+  --modal-dock-item-hover-bg: linear-gradient(145deg, rgba(255,255,255,0.1), rgba(255,255,255,0.05));
+  --modal-dock-item-hover-border: rgba(255, 255, 255, 0.2);
+  --modal-dock-handle-bg: linear-gradient(145deg, rgba(255,255,255,0.05), transparent);
+  --modal-dock-handle-border: rgba(255, 255, 255, 0.08);
+  --modal-dock-handle-dots: rgba(255, 255, 255, 0.3);
+}

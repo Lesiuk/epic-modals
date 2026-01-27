@@ -1,0 +1,19 @@
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  background: transparent;
+  backdrop-filter: blur(0px);
+  -webkit-backdrop-filter: blur(0px);
+  transition: background 200ms ease, backdrop-filter 200ms ease, -webkit-backdrop-filter 200ms ease;
+}
+
+.modal-backdrop.backdrop-visible {
+  background: var(--modal-backdrop-bg, rgba(0, 0, 0, 0.5));
+  backdrop-filter: blur(var(--modal-backdrop-blur, 4px));
+  -webkit-backdrop-filter: blur(var(--modal-backdrop-blur, 4px));
+}
+
+.modal-backdrop.backdrop-blocking {
+  pointer-events: all;
+}

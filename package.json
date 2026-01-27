@@ -1,0 +1,93 @@
+{
+  "name": "epic-modals",
+  "version": "1.0.1",
+  "description": "A stunning modal library with macOS-style animations, drag, resize, and dock. Supports Svelte 5, React, and vanilla JS.",
+  "keywords": [
+    "modal",
+    "dialog",
+    "svelte",
+    "react",
+    "vanilla",
+    "draggable",
+    "resizable",
+    "dock",
+    "macos",
+    "animations"
+  ],
+  "author": "Damian Lesiuk",
+  "license": "MIT",
+  "homepage": "https://epicmodals.eu",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Lesiuk/epic-modals.git"
+  },
+  "bugs": {
+    "url": "https://github.com/Lesiuk/epic-modals/issues"
+  },
+  "type": "module",
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./svelte": {
+      "types": "./dist/svelte.d.ts",
+      "svelte": "./dist/svelte.js",
+      "default": "./dist/svelte.js"
+    },
+    "./react": {
+      "types": "./dist/react.d.ts",
+      "default": "./dist/react.js"
+    },
+    "./vanilla": {
+      "types": "./dist/vanilla.d.ts",
+      "default": "./dist/vanilla.js"
+    },
+    "./styles": "./dist/styles/index.css",
+    "./styles/themes/light": "./dist/styles/themes/light.css",
+    "./styles/themes/dark": "./dist/styles/themes/dark.css"
+  },
+  "files": [
+    "dist/**/*.js",
+    "dist/**/*.css",
+    "dist/**/*.d.ts",
+    "!dist/**/*.test.d.ts",
+    "!dist/**/*.map",
+    "LICENSE"
+  ],
+  "scripts": {
+    "build": "vite build && BUILD_TYPE=standalone vite build && node scripts/build-css.js",
+    "prepublishOnly": "npm run build"
+  },
+  "peerDependencies": {
+    "react": "^18.0.0 || ^19.0.0",
+    "react-dom": "^18.0.0 || ^19.0.0",
+    "svelte": "^5.0.0"
+  },
+  "peerDependenciesMeta": {
+    "react": {
+      "optional": true
+    },
+    "react-dom": {
+      "optional": true
+    },
+    "svelte": {
+      "optional": true
+    }
+  },
+  "devDependencies": {
+    "@sveltejs/vite-plugin-svelte": "^5.0.0",
+    "@rollup/plugin-terser": "^0.4.4",
+    "@types/react": "^19.2.8",
+    "@types/react-dom": "^19.2.3",
+    "lightningcss": "^1.30.0",
+    "svelte": "^5.0.0",
+    "terser": "^5.46.0",
+    "typescript": "^5.6.0",
+    "vite": "^6.0.0",
+    "vite-plugin-dts": "^4.5.4"
+  }
+}

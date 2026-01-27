@@ -1,0 +1,98 @@
+:root {
+
+  --modal-bg: linear-gradient(165deg, #ffffff 0%, #fafbfc 50%, #f5f7f9 100%);
+  --modal-bg-transparent: rgba(255, 255, 255, 0.92);
+  --modal-border: rgba(0, 0, 0, 0.12);
+  --modal-border-radius: 12px;
+
+  --modal-shadow:
+    0 0 0 1px rgba(0, 0, 0, 0.04),
+    0 4px 6px -1px rgba(0, 0, 0, 0.08),
+    0 10px 20px -5px rgba(0, 0, 0, 0.1),
+    0 25px 50px -12px rgba(0, 0, 0, 0.15);
+  --modal-shadow-lg:
+    0 0 0 1px rgba(0, 0, 0, 0.03),
+    0 8px 16px -4px rgba(0, 0, 0, 0.1),
+    0 20px 40px -8px rgba(0, 0, 0, 0.12),
+    0 40px 80px -16px rgba(0, 0, 0, 0.08);
+
+  --modal-header-bg: transparent;
+  --modal-header-border: rgba(0, 0, 0, 0.08);
+  --modal-header-height: 48px;
+  --modal-header-padding: 0.875rem 1.25rem;
+  --modal-title-color: #0f172a;
+  --modal-title-size: 1rem;
+
+  --modal-btn-close: #ff5f57;
+  --modal-btn-minimize: #febc2e;
+  --modal-btn-style: #28c840;
+  --modal-btn-size: 13px;
+  --modal-btn-gap: 7px;
+
+  --modal-btn-windows-color: #a0a0a0;
+  --modal-btn-windows-hover-bg: rgba(255, 255, 255, 0.12);
+  --modal-btn-windows-hover-color: #f0f0f0;
+
+  --modal-content-padding: 0;
+  --modal-content-color: #334155;
+
+  --modal-footer-bg: transparent;
+  --modal-footer-border: rgba(0, 0, 0, 0.08);
+  --modal-footer-padding: 1rem 1.25rem;
+
+  --modal-backdrop-bg: rgba(0, 0, 0, 0.3);
+  --modal-backdrop-blur: 2px;
+
+  --modal-dock-bg: linear-gradient(180deg, rgba(255, 255, 255, 0.95) 0%, rgba(248, 250, 252, 0.92) 100%);
+  --modal-dock-border: rgba(0, 0, 0, 0.08);
+  --modal-dock-shadow:
+    0 -1px 0 0 rgba(255, 255, 255, 0.8),
+    0 4px 12px -2px rgba(0, 0, 0, 0.12),
+    0 8px 24px -4px rgba(0, 0, 0, 0.08);
+  --modal-dock-padding: 0.5rem 0.625rem;
+  --modal-dock-gap: 0.5rem;
+  --modal-dock-border-radius: 14px;
+
+  --modal-dock-item-size: 44px;
+  --modal-dock-item-bg: linear-gradient(145deg, rgba(255, 255, 255, 0.8), rgba(241, 245, 249, 0.6));
+  --modal-dock-item-border: rgba(0, 0, 0, 0.06);
+  --modal-dock-item-shadow: 0 1px 3px rgba(0, 0, 0, 0.06), inset 0 1px 0 rgba(255, 255, 255, 0.8);
+  --modal-dock-item-hover-bg: linear-gradient(145deg, #ffffff, #f1f5f9);
+  --modal-dock-item-hover-border: rgba(0, 0, 0, 0.12);
+  --modal-dock-item-hover-shadow:
+    0 4px 12px rgba(0, 0, 0, 0.1),
+    0 2px 4px rgba(0, 0, 0, 0.06),
+    inset 0 1px 0 rgba(255, 255, 255, 1);
+  --modal-dock-item-border-radius: 10px;
+  --modal-dock-label-color: #475569;
+  --modal-dock-label-size: 0.65rem;
+
+  --modal-dock-handle-bg: linear-gradient(145deg, rgba(255, 255, 255, 0.6), rgba(241, 245, 249, 0.4));
+  --modal-dock-handle-border: rgba(0, 0, 0, 0.06);
+  --modal-dock-handle-dots: rgba(0, 0, 0, 0.25);
+
+  --modal-animation-duration-open: 400ms;
+  --modal-animation-duration-close: 250ms;
+  --modal-animation-duration-minimize: 500ms;
+  --modal-animation-duration-restore: 400ms;
+  --modal-animation-easing: cubic-bezier(0.4, 0, 0.2, 1);
+  --modal-animation-easing-minimize: cubic-bezier(0.4, 0, 1, 1);
+  --modal-animation-easing-restore: ease-out;
+  --modal-animation-easing-open: ease-out;
+  --modal-animation-easing-close: cubic-bezier(0.4, 0, 0.8, 1);
+  --modal-parent-animation-duration: 300ms;
+
+  --modal-resize-handle-size: 12px;
+  --modal-resize-corner-size: 20px;
+
+  --modal-glow-color: 126, 200, 191;
+
+  --modal-attention-color: 255, 180, 100;
+  --modal-attention-duration: 600ms;
+
+  --modal-child-overlay-bg: rgba(0, 0, 0, 0.25);
+  --modal-child-overlay-blur: 1px;
+
+  --modal-icon-size: 1.5rem;
+  --modal-icon-badge-size: 0.85rem;
+}
