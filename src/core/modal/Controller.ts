@@ -310,7 +310,7 @@ export class ModalController {
       !isAwaitingChildOpen;
 
     let dataState = 'closed';
-    if (isMinimizing) dataState = 'minimizing';
+    if (isMinimizing || hasPendingMinimize(this.id)) dataState = 'minimizing';
     else if (isRestoring) dataState = 'restoring';
     else if (isOpening) dataState = 'opening';
     else if (isClosing) dataState = 'closing';

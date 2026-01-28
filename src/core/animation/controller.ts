@@ -177,6 +177,10 @@ export function createAnimationController(options: AnimationControllerOptions): 
     emitter.emit('animationEnd', { type: 'minimize' });
     minimizeData = null;
 
+    animationType = 'none';
+    isAnimating = false;
+    transform = null;
+    notify();
   }
 
   function completeRestore() {
