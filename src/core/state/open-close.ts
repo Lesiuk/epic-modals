@@ -22,6 +22,7 @@ import { registerModal } from './registration';
 import { restoreModal, clearPendingParentAnimation } from './minimize';
 import { bringToFront } from './zindex';
 import { triggerAttention } from './effects';
+import { triggerRearrangement } from './layout';
 
 export interface OpenModalOptions {
 
@@ -138,6 +139,10 @@ export function closeModal(id: ModalId, force = false): void {
     setPendingForceClose([...pendingForceClose, id]);
   } else {
     setPendingClose([...pendingClose, id]);
+  }
+
+  if (!modal.parentId) {
+    triggerRearrangement(null);
   }
 
   incrementVersion();

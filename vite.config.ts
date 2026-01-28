@@ -22,59 +22,53 @@ const terserConfig = {
   toplevel: true,
 };
 
-const buildType = process.env.BUILD_TYPE || 'svelte';
+const buildPhase = process.env.BUILD_PHASE || 'core';
 
 export default defineConfig(({ mode }) => ({
   plugins: [
     svelte(),
-
-    ...(buildType === 'svelte'
-      ? [
-          dts({
-            include: ['src'],
-            rollupTypes: false,
-            beforeWriteFile: (filePath, content) => ({
-              filePath,
-              content: content.replace(/\/\*\*[\s\S]*?\*\//g, '').replace(/\n{3,}/g, '\n\n'),
-            }),
-          }),
-        ]
-      : []),
+    dts({
+      include: buildPhase === 'core' ? ['src/core'] : ['src/svelte', 'src/react', 'src/vanilla', 'src/svelte.ts', 'src/react.ts', 'src/vanilla.ts'],
+      exclude: ['**/*.test.ts', '**/*.test.d.ts'],
+      rollupTypes: true,
+      copyDtsFiles: false,
+      beforeWriteFile: (filePath, content) => ({
+        filePath,
+        content: content.replace(/\/\*\*[\s\S]*?\*\//g, '').replace(/\n{3,}/g, '\n\n'),
+      }),
+    }),
   ],
   build: {
-    emptyOutDir: buildType === 'svelte',
+    emptyOutDir: buildPhase === 'core',
     lib:
-      buildType === 'svelte'
+      buildPhase === 'core'
         ? {
-
-            entry: {
-              index: resolve(__dirname, 'src/index.ts'),
-              svelte: resolve(__dirname, 'src/svelte.ts'),
-            },
+            entry: { core: resolve(__dirname, 'src/core/index.ts') },
             formats: ['es'],
-            fileName: (format, entryName) => `${entryName}.js`,
+            fileName: () => 'core.js',
           }
         : {
-
             entry: {
+              svelte: resolve(__dirname, 'src/svelte.ts'),
               react: resolve(__dirname, 'src/react.ts'),
               vanilla: resolve(__dirname, 'src/vanilla.ts'),
             },
             formats: ['es'],
-            fileName: (format, entryName) => `${entryName}.js`,
+            fileName: (_format, entryName) => `${entryName}.js`,
           },
     rollupOptions: {
       external:
-        buildType === 'svelte'
-          ? [
+        buildPhase === 'core'
+          ? []
+          : [
+
+              /\/core(\/|$)/,
 
               'svelte',
               'svelte/internal',
               'svelte/internal/client',
               'svelte/internal/server',
               /^svelte\//,
-            ]
-          : [
 
               'react',
               'react-dom',
@@ -85,30 +79,16 @@ export default defineConfig(({ mode }) => ({
       output: {
         plugins: mode === 'production' ? [terser(terserConfig)] : [],
         chunkFileNames: '[name].js',
-        manualChunks(id) {
-          if (buildType === 'svelte') {
-
-            if (id.includes('/core/')) {
-              return 'core';
-            }
-            if (id.includes('/svelte/') && !id.endsWith('/src/svelte.ts')) {
-              return 'ui';
-            }
-          } else {
-
-            if (
-              id.includes('svelte/') ||
-              id.includes('/core/') ||
-              (id.includes('/svelte/') && !id.endsWith('/src/svelte.ts'))
-            ) {
-              return 'runtime';
-            }
-          }
-        },
+        ...(buildPhase === 'adapters' && {
+          paths: (id: string) => {
+            if (id.match(/\/core(\/|$)/)) return './core.js';
+            return id;
+          },
+        }),
       },
     },
-    sourcemap: mode === 'development',
-    minify: false,
+    sourcemap: false,
+    minify: mode === 'production',
   },
   resolve: {
     alias: {

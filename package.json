@@ -1,6 +1,6 @@
 {
   "name": "epic-modals",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "A stunning modal library with macOS-style animations, drag, resize, and dock. Supports Svelte 5, React, and vanilla JS.",
   "keywords": [
     "modal",
@@ -17,22 +17,11 @@
   "author": "Damian Lesiuk",
   "license": "MIT",
   "homepage": "https://epicmodals.eu",
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/Lesiuk/epic-modals.git"
-  },
-  "bugs": {
-    "url": "https://github.com/Lesiuk/epic-modals/issues"
-  },
   "type": "module",
-  "main": "./dist/index.js",
-  "module": "./dist/index.js",
-  "types": "./dist/index.d.ts",
+  "sideEffects": [
+    "*.css"
+  ],
   "exports": {
-    ".": {
-      "types": "./dist/index.d.ts",
-      "default": "./dist/index.js"
-    },
     "./svelte": {
       "types": "./dist/svelte.d.ts",
       "svelte": "./dist/svelte.js",
@@ -46,9 +35,8 @@
       "types": "./dist/vanilla.d.ts",
       "default": "./dist/vanilla.js"
     },
-    "./styles": "./dist/styles/index.css",
-    "./styles/themes/light": "./dist/styles/themes/light.css",
-    "./styles/themes/dark": "./dist/styles/themes/dark.css"
+    "./styles/basic": "./dist/styles/basic.css",
+    "./styles/showcase": "./dist/styles/showcase.css"
   },
   "files": [
     "dist/**/*.js",
@@ -59,7 +47,7 @@
     "LICENSE"
   ],
   "scripts": {
-    "build": "vite build && BUILD_TYPE=standalone vite build && node scripts/build-css.js",
+    "build": "BUILD_PHASE=core vite build && BUILD_PHASE=adapters vite build && node scripts/build-css.js",
     "prepublishOnly": "npm run build"
   },
   "peerDependencies": {
