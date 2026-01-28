@@ -5,7 +5,7 @@ import {
   unregisterModal,
   createModalRegistration,
 } from '../../../core/state/registration';
-import { bringToFront } from '../../../core/state';
+import { bringToFront, getModalState } from '../../../core/state';
 import { ModalInner } from './ModalInner';
 import { ModalProviderConfigContext, RenderIconContext } from '../../context';
 
@@ -43,6 +43,10 @@ export function Modal({
     }
 
     return () => {
+
+      const state = getModalState(id);
+      if (state?.isHiddenWithParent) return;
+
       unregisterModal(id);
     };
   }, [id]);

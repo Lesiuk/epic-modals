@@ -50,6 +50,10 @@
   });
 
   onDestroy(() => {
+
+    const state = getModalState(id);
+    if (state?.isHiddenWithParent) return;
+
     unregisterModal(id);
   });
 

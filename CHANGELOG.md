@@ -14,6 +14,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Modal no longer gets stuck in `data-state="minimizing"` after animation completes
   - Animation state now properly resets when minimize completes (modal stays mounted for dock restore)
   - Added guard against race where store sets `isMinimized=true` before animation controller starts
+- Child modals no longer get unregistered when parent is minimized
+  - When parent modal minimizes, its content is unmounted which would unmount child modal components
+  - Child modals now preserve their state when hidden with parent and properly restore
 
 ## [1.0.5] - 2026-01-28
 
