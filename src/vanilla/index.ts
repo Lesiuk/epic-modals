@@ -9,19 +9,11 @@ import { initializeResizeListener, cleanupResizeListener } from '../core/state/l
 export {
   openModal,
   closeModal,
+  closeAllModals,
   minimizeModal,
   restoreModal,
-  restoreAllMinimizedModals,
   bringToFront,
   isModalOpen,
-  isModalRegistered,
-  openChildModal,
-  closeAllModals,
-  toggleModalTransparency,
-  getModalState,
-  reorderDock,
-  getModalsStore,
-  getDockOrder,
 } from '../core/state';
 
 export { setConfig, getConfig } from '../core/config';

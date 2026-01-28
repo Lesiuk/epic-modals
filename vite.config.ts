@@ -60,28 +60,30 @@ export default defineConfig(({ mode }) => ({
       external:
         buildPhase === 'core'
           ? []
-          : [
+          : (id: string) => {
 
-              /\/core(\/|$)/,
+              if (/\/core(\/index)?(\.[tj]s)?$/.test(id) || id === '@/core') {
+                return true;
+              }
 
-              'svelte',
-              'svelte/internal',
-              'svelte/internal/client',
-              'svelte/internal/server',
-              /^svelte\//,
+              if (id === 'svelte' || id.startsWith('svelte/')) {
+                return true;
+              }
 
-              'react',
-              'react-dom',
-              'react/jsx-runtime',
-              'react/jsx-dev-runtime',
-              /^react\//,
-            ],
+              if (id === 'react' || id === 'react-dom' || id.startsWith('react/')) {
+                return true;
+              }
+              return false;
+            },
       output: {
         plugins: mode === 'production' ? [terser(terserConfig)] : [],
         chunkFileNames: '[name].js',
         ...(buildPhase === 'adapters' && {
           paths: (id: string) => {
-            if (id.match(/\/core(\/|$)/)) return './core.js';
+
+            if (/\/core(\/index)?(\.[tj]s)?$/.test(id) || id === '@/core') {
+              return './core.js';
+            }
             return id;
           },
         }),

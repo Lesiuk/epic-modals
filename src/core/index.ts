@@ -1,60 +1,54 @@
 export * from './types';
 
-export * from './config';
+export {
 
-export * from './state';
+  type DockConfig,
+  type AnimationDurations,
+  type ZIndexConfig,
+  type ParentChildConfig,
+  type PositioningConfig,
+  type ModalLibraryConfig,
+  type PartialModalLibraryConfig,
+
+  getConfig,
+  setConfig,
+  resetConfig,
+  isFeatureEnabled,
+
+  defaultConfig,
+} from './config';
 
 export {
 
-  CSS,
+  openModal,
+  closeModal,
+  closeAllModals,
+  createModal,
+
+  minimizeModal,
+  restoreModal,
+  restoreAllMinimizedModals,
+
+  getModalState,
+  isModalOpen,
+  isModalRegistered,
+
+  bringToFront,
+  isTopModal,
+
+  updateModalPosition,
+  updateModalSize,
+
+  triggerAttention,
+
+  type OpenModalOptions,
+} from './state';
+
+export {
   CSS_CLASSES,
-  DATA_ATTRS,
   DATA_ATTRIBUTES,
-  RESIZE_DIRECTIONS,
-  RESIZE_DIRECTION_LABELS,
-  ANIMATION_DURATIONS,
-  DEFAULTS,
-  FOCUSABLE_SELECTORS,
-
-  onAnimationEnd,
-  setupAnimationEndListener,
-  whenHasDimensions,
-  ANIMATION_NAMES,
-
-  constrainToViewport,
-  constrainSizeToViewport,
-  calculateOverlap,
-  calculateTotalOverlap,
-  calculateMinDistance,
-  getElementBounds,
-  calculateEqualSpaceLayout,
-  calculateSmartLayout,
-  computeAvailableArea,
-  type ModalBounds,
-  type ViewportConstraintOptions,
-  type SmartPositionOptions,
-  type ModalBoundsWithId,
-  type ModalLayoutInfo,
-  type SmartLayoutOptions,
-  type SmartLayoutResult,
-
-  toDataId,
-  getModalDialogElement,
-  screenCenter,
-
-  getMinimizedModals,
-  calculateDockDragPosition,
-  constrainDockPosition,
-  getDockContainerClasses,
-  getDockClasses,
-
-  isBackdropEnabled,
-  hasOpenModals,
-  getBackdropConfig,
 } from './utils';
 
-export * from './behaviors';
-
-export * from './animation';
-
-export * from './modal';
+export {
+  screenCenter,
+} from './utils';
