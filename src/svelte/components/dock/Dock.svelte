@@ -2,9 +2,9 @@
   import { cubicOut, backOut } from 'svelte/easing';
   import { getContext } from 'svelte';
   import type { Snippet } from 'svelte';
+  import { restoreModal } from '../../../core/state/minimize';
   import {
     getModalsStore,
-    restoreModal,
     isModalAnimating,
     shakeElement,
   } from '../../../core/state';

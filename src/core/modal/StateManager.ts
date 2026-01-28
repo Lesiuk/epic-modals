@@ -87,6 +87,8 @@ export class ModalStateManager {
   private _deferredParentTarget: Position | null = null;
   private _parentFlipStartTime = 0;
 
+  private _isHandlingPendingStates = false;
+
   constructor(options: ModalStateManagerOptions) {
     this.id = options.id;
     this.options = options;
@@ -95,21 +97,32 @@ export class ModalStateManager {
   }
 
   handlePendingStates(): void {
+
+    if (this._isHandlingPendingStates) {
+      return;
+    }
+
     const state = getModalState(this.id);
     if (!state) return;
 
-    if (this.handlePendingForceClose()) return;
-    this.handlePendingMinimize();
-    this.handlePendingMinimizeWithParent();
-    this.handlePendingRestore();
-    this.handlePendingChildRestore();
-    if (this.handlePendingClose()) return;
+    this._isHandlingPendingStates = true;
+    try {
 
-    const link = this.handlePendingParentLink();
-    const hadSourcePosition = this.handlePendingOpen(link);
-    this.handlePendingAttention();
-    this.handlePendingParentAnimation();
-    this.handleChildCentering(link, hadSourcePosition);
+      if (this.handlePendingForceClose()) return;
+      this.handlePendingMinimize();
+      this.handlePendingMinimizeWithParent();
+      this.handlePendingRestore();
+      this.handlePendingChildRestore();
+      if (this.handlePendingClose()) return;
+
+      const link = this.handlePendingParentLink();
+      const hadSourcePosition = this.handlePendingOpen(link);
+      this.handlePendingAttention();
+      this.handlePendingParentAnimation();
+      this.handleChildCentering(link, hadSourcePosition);
+    } finally {
+      this._isHandlingPendingStates = false;
+    }
   }
 
   private handlePendingForceClose(): boolean {
@@ -373,9 +386,10 @@ export class ModalStateManager {
     const drag = this.options.getDragBehavior();
     const element = this.options.getElement();
 
-    const oldPosition = element ? {
-      x: element.getBoundingClientRect().left,
-      y: element.getBoundingClientRect().top,
+    const rect = element?.getBoundingClientRect();
+    const oldPosition = rect ? {
+      x: rect.left,
+      y: rect.top,
     } : (getModalState(this.id)?.position ?? null);
 
     updateModal(this.id, {

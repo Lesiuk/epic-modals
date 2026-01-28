@@ -468,11 +468,50 @@ export class ModalController {
     this.animation.setPendingOpenSource(position);
   }
 
+  updateOptions(options: Partial<Pick<ModalControllerOptions, 'glow' | 'maxWidth' | 'preferredHeight' | 'closeOnEscape'>>): void {
+    let needsStateChange = false;
+
+    if (options.glow !== undefined && this.options.glow !== options.glow) {
+      this.options.glow = options.glow;
+      updateModal(this.id, { glow: options.glow ?? null });
+      needsStateChange = true;
+    }
+
+    if (options.maxWidth !== undefined && this.options.maxWidth !== options.maxWidth) {
+      this.options.maxWidth = options.maxWidth;
+      needsStateChange = true;
+    }
+
+    if (options.preferredHeight !== undefined && this.options.preferredHeight !== options.preferredHeight) {
+      this.options.preferredHeight = options.preferredHeight;
+      needsStateChange = true;
+    }
+
+    if (options.closeOnEscape !== undefined && this.options.closeOnEscape !== options.closeOnEscape) {
+      this.options.closeOnEscape = options.closeOnEscape;
+
+      this.interactions.updateCloseOnEscape(options.closeOnEscape);
+    }
+
+    if (needsStateChange) {
+      this.notifyStateChange();
+    }
+  }
+
   updateGlow(glow: ModalControllerOptions['glow']): void {
-    if (this.options.glow === glow) return;
-    this.options.glow = glow;
-    updateModal(this.id, { glow: glow ?? null });
-    this.notifyStateChange();
+    this.updateOptions({ glow });
+  }
+
+  updateMaxWidth(maxWidth: string | undefined): void {
+    this.updateOptions({ maxWidth });
+  }
+
+  updatePreferredHeight(preferredHeight: string | undefined): void {
+    this.updateOptions({ preferredHeight });
+  }
+
+  updateCloseOnEscape(closeOnEscape: boolean): void {
+    this.updateOptions({ closeOnEscape });
   }
 
   focusFirst(): void {

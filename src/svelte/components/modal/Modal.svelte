@@ -4,11 +4,13 @@
   import {
     registerModal,
     unregisterModal,
+    createModalRegistration,
+  } from '../../../core/state/registration';
+  import {
     getModalState,
     hasPendingOpen,
     hasPendingClose,
     hasPendingMinimize,
-    createModalRegistration,
   } from '../../../core/state';
   import { getReactiveStateVersion } from '../../stores.svelte';
   import ModalInner from './ModalInner.svelte';

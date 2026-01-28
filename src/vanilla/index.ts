@@ -14,6 +14,10 @@ export {
   restoreModal,
   bringToFront,
   isModalOpen,
+  getModalState,
+  getModalsStore,
+  toggleModalTransparency,
+  triggerAttention,
 } from '../core/state';
 
 export { setConfig, getConfig } from '../core/config';
@@ -60,22 +64,25 @@ export function createModal(options: ModalOptions): ModalControl {
   const contentElement = content ? toElement(content) : undefined;
   const footerElement = footer ? toElement(footer) : undefined;
 
-  if (customIcon) {
-    console.warn('VanillaModal: customIcon support not yet implemented');
-  }
+  const iconElement = customIcon ? toElement(customIcon) : rest.iconElement;
 
   const modal = new VanillaModal({
     ...rest,
     container: document.body,
     content: contentElement,
     footer: footerElement,
+    iconElement,
   });
 
   return {
     destroy: () => modal.destroy(),
-    update: (_newOptions: Partial<ModalOptions>) => {
-
-      console.warn('Vanilla modal update not yet implemented');
+    update: (newOptions: Partial<ModalOptions>) => {
+      const { content: newContent, footer: newFooter, ...updateRest } = newOptions;
+      modal.update({
+        ...updateRest,
+        content: newContent !== undefined ? toElement(newContent) : undefined,
+        footer: newFooter !== undefined ? toElement(newFooter) : undefined,
+      });
     },
   };
 }

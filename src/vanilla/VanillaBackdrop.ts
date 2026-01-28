@@ -1,4 +1,5 @@
-import { subscribe, closeAllModals } from '../core/state';
+import { closeAllModals } from '../core/state/open-close';
+import { subscribe } from '../core/state';
 import { CSS_CLASSES } from '../core/utils/constants';
 import { hasOpenModals, getBackdropConfig } from '../core/utils/backdrop';
 

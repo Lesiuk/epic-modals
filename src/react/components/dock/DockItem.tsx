@@ -1,5 +1,6 @@
 import React, { useContext, useCallback, type ReactNode } from 'react';
-import { restoreModal, isModalAnimating, shakeElement } from '../../../core/state';
+import { restoreModal } from '../../../core/state/minimize';
+import { isModalAnimating, shakeElement } from '../../../core/state';
 import { toDataId } from '../../../core/utils';
 import { CSS } from '../../../core/utils/constants';
 import type { ModalState } from '../../../core/types';

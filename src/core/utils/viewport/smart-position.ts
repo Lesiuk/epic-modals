@@ -2,6 +2,29 @@ import type { Position } from '../../types';
 import type { ModalBounds, ModalLayoutInfo, SmartLayoutOptions, SmartLayoutResult } from './types';
 import { calculateOverlap, calculateTotalOverlap } from './overlap';
 
+const LAYOUT_SCORING = {
+
+  MIN_GAP_WEIGHT: 0.6,
+
+  GEO_MEAN_WEIGHT: 0.4,
+
+  ASPECT_RATIO_BONUS: 1.02,
+} as const;
+
+const OVERLAP_SCORING = {
+
+  OVERLAP_WEIGHT: 0.5,
+
+  CENTER_WEIGHT: 0.5,
+
+  DEFAULT_GRID_RESOLUTION: 20,
+} as const;
+
+const CASCADE = {
+
+  TITLE_BAR_HEIGHT: 40,
+} as const;
+
 interface AvailableArea {
   x: number;
   y: number;
@@ -167,11 +190,11 @@ export function tryGridConfig(
   const vScore = rows > 1 ? vInterGap : vEdgeGap;
   const minGap = Math.min(hScore, vScore);
   const geoMean = Math.sqrt(hScore * vScore);
-  const baseScore = 0.6 * minGap + 0.4 * geoMean;
+  const baseScore = LAYOUT_SCORING.MIN_GAP_WEIGHT * minGap + LAYOUT_SCORING.GEO_MEAN_WEIGHT * geoMean;
 
   const viewportIsLandscape = area.width > area.height;
   const configIsLandscape = cols >= rows;
-  const aspectBonus = (viewportIsLandscape === configIsLandscape) ? 1.02 : 1.0;
+  const aspectBonus = (viewportIsLandscape === configIsLandscape) ? LAYOUT_SCORING.ASPECT_RATIO_BONUS : 1.0;
 
   const score = baseScore * aspectBonus;
 
@@ -183,7 +206,7 @@ export function findLeastOverlapPosition(
   height: number,
   existingBounds: ModalBounds[],
   area: AvailableArea,
-  gridResolution: number = 20
+  gridResolution: number = OVERLAP_SCORING.DEFAULT_GRID_RESOLUTION
 ): Position {
   const centerX = area.x + (area.width - width) / 2;
   const centerY = area.y + (area.height - height) / 2;
@@ -224,7 +247,7 @@ export function findLeastOverlapPosition(
         y + height / 2 - areaCenterY,
       );
       const normalizedDist = maxDist > 0 ? distFromCenter / maxDist : 0;
-      const score = 0.5 * normalizedOverlap + 0.5 * normalizedDist;
+      const score = OVERLAP_SCORING.OVERLAP_WEIGHT * normalizedOverlap + OVERLAP_SCORING.CENTER_WEIGHT * normalizedDist;
 
       if (score < bestScore) {
         bestScore = score;
@@ -240,13 +263,12 @@ export function createCascadeLayout(
   modals: ModalToPlace[],
   area: AvailableArea
 ): Map<string, Position> {
-  const TITLE_BAR_HEIGHT = 40;
   const positions = new Map<string, Position>();
 
   const largestWidth = Math.max(...modals.map(m => m.width));
   const largestHeight = Math.max(...modals.map(m => m.height));
-  const cascadeWidth = largestWidth + (modals.length - 1) * TITLE_BAR_HEIGHT;
-  const cascadeHeight = largestHeight + (modals.length - 1) * TITLE_BAR_HEIGHT;
+  const cascadeWidth = largestWidth + (modals.length - 1) * CASCADE.TITLE_BAR_HEIGHT;
+  const cascadeHeight = largestHeight + (modals.length - 1) * CASCADE.TITLE_BAR_HEIGHT;
 
   let startX = area.x + (area.width - cascadeWidth) / 2;
   let startY = area.y + (area.height - cascadeHeight) / 2;
@@ -256,8 +278,8 @@ export function createCascadeLayout(
 
   for (let i = 0; i < modals.length; i++) {
     positions.set(modals[i].id, {
-      x: Math.round(startX + i * TITLE_BAR_HEIGHT),
-      y: Math.round(startY + i * TITLE_BAR_HEIGHT),
+      x: Math.round(startX + i * CASCADE.TITLE_BAR_HEIGHT),
+      y: Math.round(startY + i * CASCADE.TITLE_BAR_HEIGHT),
     });
   }
 

@@ -112,7 +112,7 @@
 
   $effect(() => {
     if (controller) {
-      controller.updateGlow(glow);
+      controller.updateOptions({ glow, maxWidth, preferredHeight, closeOnEscape });
     }
   });
 

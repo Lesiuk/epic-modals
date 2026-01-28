@@ -51,20 +51,28 @@ export function applyLayoutPositions(positions: Map<string, Position>): void {
     size: { width: number; height: number };
   }> = [];
 
+  const elementData = new Map<ModalId, { element: HTMLElement | null; rect: DOMRect | null }>();
+  for (const [id] of positions) {
+    const element = getModalDialogElement(id);
+
+    const rect = element ? element.getBoundingClientRect() : null;
+    elementData.set(id, { element, rect });
+  }
+
   for (const [id, newPosition] of positions) {
     const modal = modals.get(id);
     if (!modal) continue;
 
-    const element = getModalDialogElement(id);
+    const { element, rect } = elementData.get(id) || { element: null, rect: null };
 
-    const oldPosition = modal.position ?? (element ? {
-      x: element.getBoundingClientRect().left,
-      y: element.getBoundingClientRect().top,
+    const oldPosition = modal.position ?? (rect ? {
+      x: rect.left,
+      y: rect.top,
     } : { x: 0, y: 0 });
 
-    const size = modal.size ?? (element ? {
-      width: element.offsetWidth,
-      height: element.offsetHeight,
+    const size = modal.size ?? (rect ? {
+      width: rect.width,
+      height: rect.height,
     } : { width: 0, height: 0 });
 
     animationTargets.push({ id, element, oldPosition, newPosition, size });
@@ -179,15 +187,23 @@ export function animateModalsToPositions(moves: Map<string, Position>): void {
     newPosition: Position;
   }> = [];
 
+  const elementData = new Map<ModalId, { element: HTMLElement | null; rect: DOMRect | null }>();
+  for (const [id] of moves) {
+    const element = getModalDialogElement(id);
+
+    const rect = element ? element.getBoundingClientRect() : null;
+    elementData.set(id, { element, rect });
+  }
+
   for (const [id, newPosition] of moves) {
     const modal = modals.get(id);
     if (!modal) continue;
 
-    const element = getModalDialogElement(id);
+    const { element, rect } = elementData.get(id) || { element: null, rect: null };
 
-    const oldPosition = modal.position ?? (element ? {
-      x: element.getBoundingClientRect().left,
-      y: element.getBoundingClientRect().top,
+    const oldPosition = modal.position ?? (rect ? {
+      x: rect.left,
+      y: rect.top,
     } : { x: 0, y: 0 });
 
     animationTargets.push({ id, element, oldPosition, newPosition });

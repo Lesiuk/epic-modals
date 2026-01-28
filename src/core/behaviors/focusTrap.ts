@@ -1,9 +1,53 @@
 import { FOCUSABLE_SELECTORS } from '../utils/constants';
 
+const focusableCache = new WeakMap<HTMLElement, {
+  elements: HTMLElement[];
+  observer: MutationObserver | null;
+}>();
+
 export function getFocusableElements(container: HTMLElement): HTMLElement[] {
+  const cached = focusableCache.get(container);
+  if (cached) {
+    return cached.elements;
+  }
+
+  const elements = computeFocusableElements(container);
+
+  const observer = new MutationObserver(() => {
+    invalidateFocusableCache(container);
+  });
+
+  observer.observe(container, {
+    childList: true,
+    subtree: true,
+    attributes: true,
+    attributeFilter: ['disabled', 'tabindex', 'href', 'hidden'],
+  });
+
+  focusableCache.set(container, { elements, observer });
+  return elements;
+}
+
+function computeFocusableElements(container: HTMLElement): HTMLElement[] {
   return Array.from(container.querySelectorAll<HTMLElement>(FOCUSABLE_SELECTORS)).filter(
     (el) => el.offsetParent !== null || el.tagName === 'A'
   );
+}
+
+export function invalidateFocusableCache(container: HTMLElement): void {
+  const cached = focusableCache.get(container);
+  if (cached) {
+
+    cached.elements = computeFocusableElements(container);
+  }
+}
+
+export function cleanupFocusableCache(container: HTMLElement): void {
+  const cached = focusableCache.get(container);
+  if (cached) {
+    cached.observer?.disconnect();
+    focusableCache.delete(container);
+  }
 }
 
 export function trapFocus(event: KeyboardEvent, container: HTMLElement): void {
@@ -76,6 +120,7 @@ export function createFocusTrap(container: HTMLElement) {
         previousActiveElement.focus();
       }
       previousActiveElement = null;
+      cleanupFocusableCache(container);
     },
 
     handleKeyDown(event: KeyboardEvent): void {
@@ -84,6 +129,10 @@ export function createFocusTrap(container: HTMLElement) {
 
     containsFocus(): boolean {
       return containsFocus(container);
+    },
+
+    invalidateCache(): void {
+      invalidateFocusableCache(container);
     },
   };
 }

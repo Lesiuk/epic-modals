@@ -2,7 +2,7 @@ export interface WhenDOMReadyOptions {
 
   timeout?: number;
 
-  pollInterval?: number;
+  useObservers?: boolean;
 }
 
 export function whenDOMReady(
@@ -10,29 +10,93 @@ export function whenDOMReady(
   condition: (el: HTMLElement) => boolean,
   options: WhenDOMReadyOptions = {}
 ): Promise<HTMLElement> {
-  const { timeout = 5000 } = options;
+  const { timeout = 5000, useObservers = true } = options;
 
   return new Promise((resolve, reject) => {
     const startTime = performance.now();
+    let mutationObserver: MutationObserver | null = null;
+    let resizeObserver: ResizeObserver | null = null;
+    let timeoutId: ReturnType<typeof setTimeout> | null = null;
+    let rafId: number | null = null;
+    let resolved = false;
 
-    const check = () => {
-      const el = element();
-      const elapsed = performance.now() - startTime;
-
-      if (el && condition(el)) {
-        resolve(el);
-        return;
-      }
-
-      if (elapsed >= timeout) {
-        reject(new Error(`DOM not ready after ${timeout}ms`));
-        return;
-      }
-
-      requestAnimationFrame(check);
+    const cleanup = () => {
+      resolved = true;
+      mutationObserver?.disconnect();
+      resizeObserver?.disconnect();
+      if (timeoutId) clearTimeout(timeoutId);
+      if (rafId) cancelAnimationFrame(rafId);
     };
 
-    check();
+    const checkCondition = () => {
+      if (resolved) return;
+      const el = element();
+      if (el && condition(el)) {
+        cleanup();
+        resolve(el);
+      }
+    };
+
+    timeoutId = setTimeout(() => {
+      if (!resolved) {
+        cleanup();
+        reject(new Error(`DOM not ready after ${timeout}ms`));
+      }
+    }, timeout);
+
+    const el = element();
+    if (el && condition(el)) {
+      cleanup();
+      resolve(el);
+      return;
+    }
+
+    if (useObservers && el) {
+
+      mutationObserver = new MutationObserver(checkCondition);
+      mutationObserver.observe(el, {
+        attributes: true,
+        attributeFilter: ['class', 'data-state', 'data-animation-phase', 'style'],
+        childList: true,
+        subtree: false,
+      });
+
+      resizeObserver = new ResizeObserver(checkCondition);
+      resizeObserver.observe(el);
+
+      const rafFallback = () => {
+        if (resolved) return;
+        checkCondition();
+
+        if (!resolved) {
+          rafId = requestAnimationFrame(() => {
+            setTimeout(rafFallback, 100);
+          });
+        }
+      };
+      rafFallback();
+    } else {
+
+      const check = () => {
+        if (resolved) return;
+        const currentEl = element();
+        const elapsed = performance.now() - startTime;
+
+        if (currentEl && condition(currentEl)) {
+          cleanup();
+          resolve(currentEl);
+          return;
+        }
+
+        if (elapsed >= timeout) {
+
+          return;
+        }
+
+        rafId = requestAnimationFrame(check);
+      };
+      check();
+    }
   });
 }
 

@@ -4,7 +4,8 @@ import {
   type ComputedModalState,
   type ModalControllerOptions,
 } from '../core/modal';
-import { registerModal, unregisterModal, bringToFront, createModalRegistration } from '../core/state';
+import { registerModal, unregisterModal, createModalRegistration } from '../core/state/registration';
+import { bringToFront } from '../core/state';
 import { createConfigHelper, type ModalConfigHelper } from '../core/config';
 import type { ModalId, ModalGlow, ModalConfigOverrides, Position } from '../core/types';
 import type { ResizeDirection } from '../core/behaviors/resize';
@@ -130,6 +131,53 @@ export class VanillaModal {
     this.updateFromState(this.controller.getState());
 
     this.setupEventHandlers();
+  }
+
+  update(options: Partial<VanillaModalOptions>): void {
+
+    if (options.title !== undefined && options.title !== this.options.title) {
+      this.options.title = options.title;
+      const titleEl = this.headerEl.querySelector(`.${CSS_CLASSES.headerTitle}`);
+      if (titleEl) {
+        titleEl.textContent = options.title;
+      }
+    }
+
+    if (options.content !== undefined) {
+      this.options.content = options.content;
+      this.bodyEl.innerHTML = '';
+      this.bodyEl.appendChild(options.content);
+    }
+
+    if (options.footer !== undefined) {
+      this.options.footer = options.footer;
+      if (this.footerEl) {
+        this.footerEl.innerHTML = '';
+        this.footerEl.appendChild(options.footer);
+      } else if (options.footer) {
+
+        this.footerEl = this.createFooterElement();
+        this.footerEl.appendChild(options.footer);
+
+        if (this.resizeHandlesContainer) {
+          this.dialogEl.insertBefore(this.footerEl, this.resizeHandlesContainer);
+        } else {
+          this.dialogEl.appendChild(this.footerEl);
+        }
+      }
+    }
+
+    this.controller.updateOptions({
+      maxWidth: options.maxWidth,
+      preferredHeight: options.preferredHeight,
+      glow: options.glow,
+      closeOnEscape: options.closeOnEscape,
+    });
+
+    if (options.maxWidth !== undefined) this.options.maxWidth = options.maxWidth;
+    if (options.preferredHeight !== undefined) this.options.preferredHeight = options.preferredHeight;
+    if (options.glow !== undefined) this.options.glow = options.glow;
+    if (options.closeOnEscape !== undefined) this.options.closeOnEscape = options.closeOnEscape;
   }
 
   destroy(): void {

@@ -53,6 +53,10 @@ export function createDragBehavior(options: DragBehaviorOptions = {}): DragBehav
   let initialX = 0;
   let initialY = 0;
 
+  let rafId: number | null = null;
+  let pendingEvent: PointerEvent | null = null;
+  let pendingModalSize: Dimensions | null = null;
+
   const emitter = createEventEmitter<DragEvents>();
 
   function getState(): DragState {
@@ -89,8 +93,14 @@ export function createDragBehavior(options: DragBehaviorOptions = {}): DragBehav
     notify();
   }
 
-  function onPointerMove(event: PointerEvent, modalSize: Dimensions) {
-    if (!isDragging) return;
+  function processPendingMove() {
+    rafId = null;
+    if (!pendingEvent || !pendingModalSize || !isDragging) return;
+
+    const event = pendingEvent;
+    const modalSize = pendingModalSize;
+    pendingEvent = null;
+    pendingModalSize = null;
 
     const dx = event.clientX - startX;
     const dy = event.clientY - startY;
@@ -112,9 +122,44 @@ export function createDragBehavior(options: DragBehaviorOptions = {}): DragBehav
     notify();
   }
 
+  function onPointerMove(event: PointerEvent, modalSize: Dimensions) {
+    if (!isDragging) return;
+
+    pendingEvent = event;
+    pendingModalSize = modalSize;
+
+    if (rafId === null) {
+      rafId = requestAnimationFrame(processPendingMove);
+    }
+  }
+
   function onPointerUp(event: PointerEvent, element: HTMLElement) {
     if (!isDragging) return;
 
+    if (rafId !== null) {
+      cancelAnimationFrame(rafId);
+      rafId = null;
+    }
+
+    if (pendingEvent && pendingModalSize) {
+      const dx = pendingEvent.clientX - startX;
+      const dy = pendingEvent.clientY - startY;
+      let newX = initialX + dx;
+      let newY = initialY + dy;
+
+      if (constrain) {
+        const constrained = constrainToViewport(newX, newY, pendingModalSize.width, pendingModalSize.height);
+        newX = constrained.x;
+        newY = constrained.y;
+      }
+
+      position.x = newX;
+      position.y = newY;
+      hasBeenDragged = true;
+    }
+
+    pendingEvent = null;
+    pendingModalSize = null;
     isDragging = false;
     element.releasePointerCapture(event.pointerId);
 
@@ -154,6 +199,13 @@ export function createDragBehavior(options: DragBehaviorOptions = {}): DragBehav
   }
 
   function destroy() {
+
+    if (rafId !== null) {
+      cancelAnimationFrame(rafId);
+      rafId = null;
+    }
+    pendingEvent = null;
+    pendingModalSize = null;
     emitter.off();
   }
 

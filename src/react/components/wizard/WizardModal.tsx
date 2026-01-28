@@ -3,13 +3,10 @@ import React, {
   useEffect,
   useRef,
   useCallback,
-  Children,
-  isValidElement,
   type ReactNode,
-  type ReactElement,
 } from 'react';
 import { Modal, type ModalProps } from '../modal/Modal';
-import { WizardStep, type WizardStepProps } from './WizardStep';
+import { WizardProvider, type StepRegistration } from './WizardContext';
 
 export interface WizardControls {
   currentStep: number;
@@ -41,12 +38,6 @@ export interface WizardModalProps extends Omit<ModalProps, 'children' | 'footer'
 
 const ANIMATION_DURATION = 300;
 
-function isWizardStep(element: ReactNode): element is ReactElement<WizardStepProps> {
-  return isValidElement(element) &&
-    (element.type === WizardStep ||
-     (element.type as { displayName?: string })?.displayName === 'WizardStep');
-}
-
 export function WizardModal({
   id,
   onComplete,
@@ -60,16 +51,19 @@ export function WizardModal({
   ...modalProps
 }: WizardModalProps) {
 
-  const steps = Children.toArray(children).filter(isWizardStep);
-
   const [currentStep, setCurrentStep] = useState(0);
   const [direction, setDirection] = useState<'forward' | 'backward'>('forward');
   const [isAnimating, setIsAnimating] = useState(false);
   const [animationKey, setAnimationKey] = useState(0);
   const prevStepRef = useRef(currentStep);
 
-  const currentStepElement = steps[currentStep] as ReactElement<WizardStepProps> | undefined;
-  const canProceed = currentStepElement?.props.canProceed ?? true;
+  const [registeredSteps, setRegisteredSteps] = useState<StepRegistration[]>([]);
+
+  const handleStepsChange = useCallback((steps: StepRegistration[]) => {
+    setRegisteredSteps(steps);
+  }, []);
+
+  const canProceed = registeredSteps[currentStep]?.getCanProceed() ?? true;
 
   useEffect(() => {
     if (currentStep !== prevStepRef.current) {
@@ -85,14 +79,14 @@ export function WizardModal({
   const next = useCallback(() => {
     if (!canProceed) return;
 
-    if (currentStep >= steps.length - 1) {
+    if (currentStep >= registeredSteps.length - 1) {
       onComplete?.();
     } else {
       const newStep = currentStep + 1;
       setCurrentStep(newStep);
       onStepChange?.(newStep, 'forward');
     }
-  }, [currentStep, steps.length, canProceed, onComplete, onStepChange]);
+  }, [currentStep, registeredSteps.length, canProceed, onComplete, onStepChange]);
 
   const back = useCallback(() => {
     if (currentStep > 0) {
@@ -113,12 +107,12 @@ export function WizardModal({
   );
 
   const isFirstStep = currentStep === 0;
-  const isLastStep = currentStep === steps.length - 1;
-  const progress = steps.length > 0 ? ((currentStep + 1) / steps.length) * 100 : 0;
-  const totalSteps = steps.length;
+  const isLastStep = registeredSteps.length > 0 && currentStep === registeredSteps.length - 1;
+  const progress = registeredSteps.length > 0 ? ((currentStep + 1) / registeredSteps.length) * 100 : 0;
+  const totalSteps = registeredSteps.length;
 
-  const stepData = steps.map((step) => ({
-    title: (step as ReactElement<WizardStepProps>).props.title || '',
+  const stepData = registeredSteps.map((step) => ({
+    title: step.title,
   }));
 
   const controls: WizardControls = {
@@ -208,13 +202,18 @@ export function WizardModal({
 
         <div className="wizard-container" style={styles.container}>
           {}
-          <div
-            key={animationKey}
-            className={`wizard-step-content ${getAnimationClass()}`}
-            style={styles.stepContent}
+          <WizardProvider
+            currentStep={currentStep}
+            onStepsChange={handleStepsChange}
           >
-            {currentStepElement}
-          </div>
+            <div
+              key={animationKey}
+              className={`wizard-step-content ${getAnimationClass()}`}
+              style={styles.stepContent}
+            >
+              {children}
+            </div>
+          </WizardProvider>
         </div>
       </div>
 
@@ -262,7 +261,9 @@ const wizardStyles: Record<string, React.CSSProperties> = {
     width: '10px',
     height: '10px',
     borderRadius: '50%',
-    border: '2px solid rgba(255, 255, 255, 0.3)',
+    borderWidth: '2px',
+    borderStyle: 'solid',
+    borderColor: 'rgba(255, 255, 255, 0.3)',
     background: 'transparent',
     padding: 0,
     cursor: 'pointer',

@@ -171,8 +171,8 @@ export function ModalInner({
   }, [state.isVisible]);
 
   useEffect(() => {
-    controllerRef.current?.updateGlow(glow);
-  }, [glow]);
+    controllerRef.current?.updateOptions({ glow, maxWidth, preferredHeight, closeOnEscape });
+  }, [glow, maxWidth, preferredHeight, closeOnEscape]);
 
   const isVisibleRef = useRef(state.isVisible);
   isVisibleRef.current = state.isVisible;

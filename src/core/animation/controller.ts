@@ -9,6 +9,15 @@ import {
 } from './genie';
 import { setupAnimationEndListener, ANIMATION_NAMES } from '../utils/dom';
 
+const ANIMATION_COMPLETION_TABLE: Record<string, AnimationType[]> = {
+  [ANIMATION_NAMES.MINIMIZE]: ['minimize'],
+  [ANIMATION_NAMES.RESTORE]: ['restore', 'open'],
+  [ANIMATION_NAMES.CLOSE]: ['close'],
+  [ANIMATION_NAMES.CLOSE_CENTERED]: ['close'],
+  [ANIMATION_NAMES.CHILD_APPEAR]: ['open'],
+  [ANIMATION_NAMES.CHILD_DISAPPEAR]: ['close'],
+};
+
 export interface AnimationState {
   type: AnimationType;
   isAnimating: boolean;
@@ -134,26 +143,23 @@ export function createAnimationController(options: AnimationControllerOptions): 
   function handleAnimationEnd(animationName: string) {
     clearFallbackTimer();
 
-    switch (animationName) {
-      case ANIMATION_NAMES.MINIMIZE:
-        if (animationType === 'minimize') completeMinimize();
-        break;
+    const validTypes = ANIMATION_COMPLETION_TABLE[animationName];
+    if (!validTypes || !validTypes.includes(animationType)) {
+      return;
+    }
 
-      case ANIMATION_NAMES.RESTORE:
+    const completionHandlers: Record<AnimationType, (() => void) | undefined> = {
+      none: undefined,
+      minimize: completeMinimize,
+      restore: completeRestore,
+      open: completeOpen,
+      close: completeClose,
+      attention: undefined,
+    };
 
-        if (animationType === 'restore') completeRestore();
-        else if (animationType === 'open') completeOpen();
-        break;
-
-      case ANIMATION_NAMES.CLOSE:
-      case ANIMATION_NAMES.CLOSE_CENTERED:
-      case ANIMATION_NAMES.CHILD_DISAPPEAR:
-        if (animationType === 'close') completeClose();
-        break;
-
-      case ANIMATION_NAMES.CHILD_APPEAR:
-        if (animationType === 'open') completeOpen();
-        break;
+    const handler = completionHandlers[animationType];
+    if (handler) {
+      handler();
     }
   }
 

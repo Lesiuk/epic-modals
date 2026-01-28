@@ -3,9 +3,9 @@ import type { BaseModalProps } from '../../../core/types';
 import {
   registerModal,
   unregisterModal,
-  bringToFront,
   createModalRegistration,
-} from '../../../core/state';
+} from '../../../core/state/registration';
+import { bringToFront } from '../../../core/state';
 import { ModalInner } from './ModalInner';
 import { ModalProviderConfigContext, RenderIconContext } from '../../context';
 

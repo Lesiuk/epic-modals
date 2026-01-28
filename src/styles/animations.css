@@ -3,22 +3,28 @@
     transform: scale(1, 1) translate3d(0, 0, 0);
     opacity: 1;
   }
-  50% {
-    opacity: 1;
+  30% {
+    opacity: 0.9;
   }
-  80% {
-    opacity: 0.4;
+  60% {
+    opacity: 0.5;
   }
   100% {
-    transform: scale(0.05, 0.02) translate3d(var(--genie-translate-x, 0px), var(--genie-translate-y, 0px), 0);
+    transform: scale(0.12, 0.08) translate3d(var(--genie-translate-x, 0px), var(--genie-translate-y, 0px), 0);
     opacity: 0;
   }
 }
 
 @keyframes modal-genie-restore {
   0% {
-    transform: scale(0.05, 0.02) translate3d(var(--genie-translate-x, 0px), var(--genie-translate-y, 0px), 0);
+    transform: scale(0.12, 0.08) translate3d(var(--genie-translate-x, 0px), var(--genie-translate-y, 0px), 0);
     opacity: 0;
+  }
+  40% {
+    opacity: 0.5;
+  }
+  70% {
+    opacity: 0.9;
   }
   100% {
     transform: scale(1, 1) translate3d(0, 0, 0);

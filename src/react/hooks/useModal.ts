@@ -1,25 +1,14 @@
 import { useSyncExternalStore, useCallback } from 'react';
+import { openModal, closeModal, openChildModal } from '../../core/state/open-close';
+import { minimizeModal, restoreModal } from '../../core/state/minimize';
 import {
-  openModal,
-  closeModal,
-  minimizeModal,
-  restoreModal,
   getModalsStore,
-  openChildModal,
   subscribe,
   triggerAttention,
   bringToFront,
-  isModalRegistered,
 } from '../../core/state';
+import { assertModalRegistered } from '../../core/utils/helpers';
 import type { ModalId } from '../../core/types';
-
-function assertRegistered(id: ModalId, method: string): void {
-  if (!isModalRegistered(id)) {
-    throw new Error(
-      `Cannot call ${method}() on unregistered modal "${String(id)}". Ensure the Modal component is rendered.`
-    );
-  }
-}
 
 interface ModalSnapshot {
   isOpen: boolean;
@@ -36,6 +25,11 @@ function getModalSnapshot(id: ModalId): ModalSnapshot {
   const isOpen = modal !== undefined && !modal.isMinimized;
   const isMinimized = modal?.isMinimized ?? false;
   const isRegistered = modal !== undefined;
+
+  if (!isRegistered) {
+    snapshotCache.delete(id);
+    return { isOpen: false, isMinimized: false, isRegistered: false };
+  }
 
   const cached = snapshotCache.get(id);
   if (cached &&
@@ -60,37 +54,37 @@ export function useModal(id: ModalId) {
   );
 
   const open = useCallback((sourceElement: HTMLElement) => {
-    assertRegistered(id, 'open');
+    assertModalRegistered(id, 'open');
     openModal(id, sourceElement);
   }, [id]);
 
   const close = useCallback(() => {
-    assertRegistered(id, 'close');
+    assertModalRegistered(id, 'close');
     closeModal(id);
   }, [id]);
 
   const minimize = useCallback(() => {
-    assertRegistered(id, 'minimize');
+    assertModalRegistered(id, 'minimize');
     minimizeModal(id);
   }, [id]);
 
   const restore = useCallback(() => {
-    assertRegistered(id, 'restore');
+    assertModalRegistered(id, 'restore');
     restoreModal(id);
   }, [id]);
 
   const openChild = useCallback((childId: ModalId, sourceElement?: HTMLElement) => {
-    assertRegistered(id, 'openChild');
+    assertModalRegistered(id, 'openChild');
     openChildModal(childId, id, sourceElement ?? document.body);
   }, [id]);
 
   const shake = useCallback(() => {
-    assertRegistered(id, 'shake');
+    assertModalRegistered(id, 'shake');
     triggerAttention(id);
   }, [id]);
 
   const focus = useCallback(() => {
-    assertRegistered(id, 'bringToFront');
+    assertModalRegistered(id, 'bringToFront');
     bringToFront(id);
   }, [id]);
 

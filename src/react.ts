@@ -14,3 +14,6 @@ export { Dock } from './react/components/dock/Dock';
 export type { DockProps } from './react/components/dock/Dock';
 
 export { useModal, useModals } from './react/hooks/useModal';
+
+export { ErrorBoundary, withErrorBoundary } from './react/components/ErrorBoundary';
+export type { ErrorBoundaryProps } from './react/components/ErrorBoundary';

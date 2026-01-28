@@ -4,6 +4,8 @@
   import {
     registerModal,
     unregisterModal,
+  } from '../../../core/state/registration';
+  import {
     getModalState,
     hasPendingOpen,
     hasPendingClose,

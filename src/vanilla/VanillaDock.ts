@@ -1,4 +1,5 @@
-import { subscribe, restoreModal, getModalsStore, isModalAnimating, shakeElement } from '../core/state';
+import { restoreModal } from '../core/state/minimize';
+import { subscribe, getModalsStore, isModalAnimating, shakeElement } from '../core/state';
 import { getConfig } from '../core/config';
 import { getMinimizedModals, getDockContainerClasses, getDockClasses } from '../core/utils/dock';
 import { getLayerZIndex } from '../core/state/stacking';

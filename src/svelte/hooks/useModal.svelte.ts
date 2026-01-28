@@ -1,17 +1,15 @@
 import type { ModalId, ModalState } from '../../core/types';
+import { openModal, closeModal, openChildModal } from '../../core/state/open-close';
+import { minimizeModal, restoreModal } from '../../core/state/minimize';
 import {
   triggerAttention,
   bringToFront,
   isModalOpen,
   isModalRegistered,
-  openModal,
-  closeModal,
-  minimizeModal,
-  restoreModal,
-  openChildModal,
   getModalsStore,
   getModalState,
 } from '../../core/state';
+import { assertModalRegistered } from '../../core/utils/helpers';
 import { getReactiveStateVersion } from '../stores.svelte';
 
 export interface UseModalReturn {
@@ -46,49 +44,51 @@ export interface UseModalsReturn {
   getOpenCount: () => number;
 }
 
-function assertRegistered(id: ModalId, method: string): void {
-  if (!isModalRegistered(id)) {
-    throw new Error(
-      `Cannot call ${method}() on unregistered modal "${String(id)}". Ensure the Modal component is rendered.`
-    );
-  }
-}
+export function useModal(idOrGetter: ModalId | (() => ModalId)): UseModalReturn {
 
-export function useModal(id: ModalId): UseModalReturn {
+  const getId = typeof idOrGetter === 'function' ? idOrGetter : () => idOrGetter;
+
   return {
     shake: () => {
-      assertRegistered(id, 'shake');
+      const id = getId();
+      assertModalRegistered(id, 'shake');
       triggerAttention(id);
     },
     bringToFront: () => {
-      assertRegistered(id, 'bringToFront');
+      const id = getId();
+      assertModalRegistered(id, 'bringToFront');
       bringToFront(id);
     },
-    isOpen: () => isModalOpen(id),
+    isOpen: () => isModalOpen(getId()),
     isMinimized: () => {
       getReactiveStateVersion();
-      const state = getModalState(id);
+      const state = getModalState(getId());
       return state?.isMinimized ?? false;
     },
-    isRegistered: () => isModalRegistered(id),
+    isRegistered: () => isModalRegistered(getId()),
     open: (sourceElement: HTMLElement) => {
-      assertRegistered(id, 'open');
+      const id = getId();
+      assertModalRegistered(id, 'open');
       openModal(id, sourceElement);
     },
     close: () => {
-      assertRegistered(id, 'close');
+      const id = getId();
+      assertModalRegistered(id, 'close');
       closeModal(id);
     },
     minimize: () => {
-      assertRegistered(id, 'minimize');
+      const id = getId();
+      assertModalRegistered(id, 'minimize');
       minimizeModal(id);
     },
     restore: () => {
-      assertRegistered(id, 'restore');
+      const id = getId();
+      assertModalRegistered(id, 'restore');
       restoreModal(id);
     },
     openChild: (childId: ModalId, sourceElement?: HTMLElement) => {
-      assertRegistered(id, 'openChild');
+      const id = getId();
+      assertModalRegistered(id, 'openChild');
       openChildModal(childId, id, sourceElement ?? document.body);
     },
   };

@@ -99,6 +99,10 @@ export class ModalInteractions {
     }
   }
 
+  updateCloseOnEscape(closeOnEscape: boolean): void {
+    this.options.closeOnEscape = closeOnEscape;
+  }
+
   handleTabKey(e: KeyboardEvent): void {
     const element = this.options.getElement();
     if (element) {
