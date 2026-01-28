@@ -1,6 +1,6 @@
 {
   "name": "epic-modals",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "A stunning modal library with macOS-style animations, drag, resize, and dock. Supports Svelte 5, React, and vanilla JS.",
   "keywords": [
     "modal",
@@ -35,7 +35,10 @@
       "types": "./dist/vanilla.d.ts",
       "default": "./dist/vanilla.js"
     },
-    "./styles/basic": "./dist/styles/basic.css",
+    "./styles": "./dist/styles/basic.css",
+    "./styles/dock": "./dist/styles/dock.css",
+    "./styles/wizard": "./dist/styles/wizard.css",
+    "./styles/all": "./dist/styles/all.css",
     "./styles/showcase": "./dist/styles/showcase.css"
   },
   "files": [

@@ -39,6 +39,8 @@ export {
   type SmartLayoutResult,
 
   toDataId,
+  getModalDialogElement,
+  screenCenter,
 
   getMinimizedModals,
   calculateDockDragPosition,

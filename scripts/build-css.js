@@ -9,6 +9,9 @@ if (existsSync(viteGeneratedCss)) {
 
 const bundles = [
   { src: 'src/styles/basic.css', dest: 'dist/styles/basic.css' },
+  { src: 'src/styles/dock.css', dest: 'dist/styles/dock.css' },
+  { src: 'src/styles/wizard.css', dest: 'dist/styles/wizard.css' },
+  { src: 'src/styles/all.css', dest: 'dist/styles/all.css' },
   { src: 'src/styles/showcase.css', dest: 'dist/styles/showcase.css' },
 ];
 

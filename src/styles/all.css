@@ -1,4 +1,6 @@
 @import './variables.css';
 @import './animations.css';
 @import './modal.css';
+@import './dock.css';
+@import './wizard.css';
 @import './backdrop.css';
