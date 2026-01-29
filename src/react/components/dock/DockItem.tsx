@@ -1,8 +1,8 @@
 import React, { useContext, useCallback, type ReactNode } from 'react';
-import { restoreModal } from '../../../core/state/minimize';
+import { restoreModal } from '../../../core/state/operations';
 import { isModalAnimating, shakeElement } from '../../../core/state';
-import { toDataId } from '../../../core/utils';
 import { CSS } from '../../../core/utils/constants';
+import { toDataId } from '../../../core/utils/helpers';
 import type { ModalState } from '../../../core/types';
 import { RenderIconContext } from '../../context';
 
@@ -38,7 +38,6 @@ export function DockItem({
     }
   }, [modal.id]);
 
-  const dataId = toDataId(modal.id);
   const hasGlow = !!modal.glow;
   const hasChild = !!modal.lastChildId;
 
@@ -58,7 +57,7 @@ export function DockItem({
   return (
     <button
       className={classNames}
-      data-modal-id={dataId}
+      data-modal-id={toDataId(modal.id)}
       aria-label={`Restore ${modal.title}`}
       onClick={handleClick}
       style={style}

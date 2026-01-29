@@ -1,10 +1,11 @@
-import { CSS_CLASSES, DATA_ATTRIBUTES, RESIZE_DIRECTIONS } from '../core/utils/constants';
+import { CSS, DATA_ATTRS, RESIZE_DIRECTIONS } from '../core/utils/constants';
+import { toDataId } from '../core/utils/helpers';
 import {
   ModalController,
   type ComputedModalState,
   type ModalControllerOptions,
 } from '../core/modal';
-import { registerModal, unregisterModal, createModalRegistration } from '../core/state/registration';
+import { registerModal, unregisterModal, createModalRegistration } from '../core/state/operations';
 import { bringToFront } from '../core/state';
 import { createConfigHelper, type ModalConfigHelper } from '../core/config';
 import type { ModalId, ModalGlow, ModalConfigOverrides, Position } from '../core/types';
@@ -137,7 +138,7 @@ export class VanillaModal {
 
     if (options.title !== undefined && options.title !== this.options.title) {
       this.options.title = options.title;
-      const titleEl = this.headerEl.querySelector(`.${CSS_CLASSES.headerTitle}`);
+      const titleEl = this.headerEl.querySelector(`.${CSS.headerTitle}`);
       if (titleEl) {
         titleEl.textContent = options.title;
       }
@@ -190,11 +191,12 @@ export class VanillaModal {
 
   private createDialogElement(): HTMLElement {
     const dialog = document.createElement('div');
-    dialog.className = CSS_CLASSES.dialog;
-    dialog.setAttribute(DATA_ATTRIBUTES.modalId, String(this.options.id));
+    dialog.className = CSS.modal;
+    const dataId = toDataId(this.options.id);
+    dialog.setAttribute(DATA_ATTRS.modalId, dataId);
     dialog.setAttribute('role', 'dialog');
     dialog.setAttribute('aria-modal', 'true');
-    dialog.setAttribute('aria-labelledby', `${this.options.id}-title`);
+    dialog.setAttribute('aria-labelledby', `${dataId}-title`);
     dialog.setAttribute('tabindex', '-1');
     return dialog;
   }
@@ -208,8 +210,8 @@ export class VanillaModal {
     const transparencyEnabled = this.configHelper.isFeatureEnabled('transparency');
 
     header.className = draggable
-      ? `${CSS_CLASSES.header} ${CSS_CLASSES.headerDraggable}`
-      : CSS_CLASSES.header;
+      ? `${CSS.header} ${CSS.headerDraggable}`
+      : CSS.header;
 
     const iconElement = this.getIconElement();
 
@@ -243,11 +245,11 @@ export class VanillaModal {
   ): void {
 
     const trafficLights = document.createElement('div');
-    trafficLights.className = CSS_CLASSES.headerTrafficLights;
+    trafficLights.className = CSS.headerTrafficLights;
 
     const closeBtn = document.createElement('button');
     closeBtn.type = 'button';
-    closeBtn.className = `${CSS_CLASSES.headerLight} ${CSS_CLASSES.headerLightClose}`;
+    closeBtn.className = `${CSS.headerLight} ${CSS.headerLightClose}`;
     closeBtn.setAttribute('aria-label', 'Close');
     closeBtn.setAttribute('data-control', 'close');
     trafficLights.appendChild(closeBtn);
@@ -255,7 +257,7 @@ export class VanillaModal {
     if (minimizable) {
       const minimizeBtn = document.createElement('button');
       minimizeBtn.type = 'button';
-      minimizeBtn.className = `${CSS_CLASSES.headerLight} ${CSS_CLASSES.headerLightMinimize}${minimizeDisabled ? ` ${CSS_CLASSES.headerLightDisabled}` : ''}`;
+      minimizeBtn.className = `${CSS.headerLight} ${CSS.headerLightMinimize}${minimizeDisabled ? ` ${CSS.headerLightDisabled}` : ''}`;
       minimizeBtn.setAttribute('aria-label', 'Minimize');
       minimizeBtn.setAttribute('data-control', 'minimize');
       if (minimizeDisabled) {
@@ -268,7 +270,7 @@ export class VanillaModal {
     if (transparencyEnabled) {
       const styleBtn = document.createElement('button');
       styleBtn.type = 'button';
-      styleBtn.className = `${CSS_CLASSES.headerLight} ${CSS_CLASSES.headerLightStyle}`;
+      styleBtn.className = `${CSS.headerLight} ${CSS.headerLightStyle}`;
       styleBtn.setAttribute('aria-label', 'Toggle style');
       styleBtn.setAttribute('data-control', 'style');
       trafficLights.appendChild(styleBtn);
@@ -277,21 +279,21 @@ export class VanillaModal {
     header.appendChild(trafficLights);
 
     const macCenter = document.createElement('div');
-    macCenter.className = CSS_CLASSES.headerMacCenter;
+    macCenter.className = CSS.headerMacCenter;
 
     if (iconElement) {
       const iconWrapper = document.createElement('div');
-      iconWrapper.className = CSS_CLASSES.headerIcon;
+      iconWrapper.className = CSS.headerIcon;
       iconWrapper.appendChild(iconElement);
       macCenter.appendChild(iconWrapper);
     }
 
     const titleGroup = document.createElement('div');
-    titleGroup.className = CSS_CLASSES.headerTitleGroup;
+    titleGroup.className = CSS.headerTitleGroup;
 
     const title = document.createElement('h2');
-    title.className = CSS_CLASSES.headerTitle;
-    title.id = `${this.options.id}-title`;
+    title.className = CSS.headerTitle;
+    title.id = `${toDataId(this.options.id)}-title`;
     title.textContent = this.options.title;
     titleGroup.appendChild(title);
 
@@ -299,7 +301,7 @@ export class VanillaModal {
     header.appendChild(macCenter);
 
     const spacer = document.createElement('div');
-    spacer.className = CSS_CLASSES.headerMacSpacer;
+    spacer.className = CSS.headerMacSpacer;
     header.appendChild(spacer);
   }
 
@@ -312,30 +314,30 @@ export class VanillaModal {
   ): void {
 
     const titleGroup = document.createElement('div');
-    titleGroup.className = CSS_CLASSES.headerTitleGroup;
+    titleGroup.className = CSS.headerTitleGroup;
 
     if (iconElement) {
       const iconWrapper = document.createElement('div');
-      iconWrapper.className = CSS_CLASSES.headerIcon;
+      iconWrapper.className = CSS.headerIcon;
       iconWrapper.appendChild(iconElement);
       titleGroup.appendChild(iconWrapper);
     }
 
     const title = document.createElement('h2');
-    title.className = CSS_CLASSES.headerTitle;
-    title.id = `${this.options.id}-title`;
+    title.className = CSS.headerTitle;
+    title.id = `${toDataId(this.options.id)}-title`;
     title.textContent = this.options.title;
     titleGroup.appendChild(title);
 
     header.appendChild(titleGroup);
 
     const actions = document.createElement('div');
-    actions.className = CSS_CLASSES.headerActions;
+    actions.className = CSS.headerActions;
 
     if (transparencyEnabled) {
       const styleBtn = document.createElement('button');
       styleBtn.type = 'button';
-      styleBtn.className = `${CSS_CLASSES.headerBtnWindows} ${CSS_CLASSES.headerBtnWindowsStyle}`;
+      styleBtn.className = `${CSS.headerBtnWindows} ${CSS.headerBtnWindowsStyle}`;
       styleBtn.setAttribute('aria-label', 'Toggle style');
       styleBtn.setAttribute('data-control', 'style');
       styleBtn.innerHTML = '&#9671;';
@@ -345,7 +347,7 @@ export class VanillaModal {
     if (minimizable) {
       const minimizeBtn = document.createElement('button');
       minimizeBtn.type = 'button';
-      minimizeBtn.className = `${CSS_CLASSES.headerBtnWindows}${minimizeDisabled ? ` ${CSS_CLASSES.headerBtnWindowsDisabled}` : ''}`;
+      minimizeBtn.className = `${CSS.headerBtnWindows}${minimizeDisabled ? ` ${CSS.headerBtnWindowsDisabled}` : ''}`;
       minimizeBtn.setAttribute('aria-label', 'Minimize');
       minimizeBtn.setAttribute('data-control', 'minimize');
       minimizeBtn.innerHTML = '&#8211;';
@@ -358,7 +360,7 @@ export class VanillaModal {
 
     const closeBtn = document.createElement('button');
     closeBtn.type = 'button';
-    closeBtn.className = `${CSS_CLASSES.headerBtnWindows} ${CSS_CLASSES.headerBtnWindowsClose}`;
+    closeBtn.className = `${CSS.headerBtnWindows} ${CSS.headerBtnWindowsClose}`;
     closeBtn.setAttribute('aria-label', 'Close');
     closeBtn.setAttribute('data-control', 'close');
     closeBtn.innerHTML = '&times;';
@@ -369,30 +371,30 @@ export class VanillaModal {
 
   private createBodyElement(): HTMLElement {
     const body = document.createElement('div');
-    body.className = CSS_CLASSES.body;
+    body.className = CSS.body;
     return body;
   }
 
   private createFooterElement(): HTMLElement {
     const footer = document.createElement('div');
-    footer.className = CSS_CLASSES.footer;
+    footer.className = CSS.footer;
     return footer;
   }
 
   private createResizeHandles(): HTMLElement {
     const container = document.createElement('div');
-    container.className = CSS_CLASSES.resizeHandles;
+    container.className = CSS.resizeHandles;
     container.setAttribute('role', 'group');
     container.setAttribute('aria-label', 'Resize handles');
 
     for (const direction of RESIZE_DIRECTIONS) {
       const handle = document.createElement('div');
-      handle.className = `${CSS_CLASSES.resizeHandle} ${CSS_CLASSES.resizePrefix}${direction}`;
+      handle.className = `${CSS.resizeHandle} ${CSS.resizePrefix}${direction}`;
       handle.setAttribute('role', 'separator');
       handle.setAttribute('tabindex', '0');
       handle.setAttribute('aria-label', `Resize ${direction}`);
       handle.setAttribute('aria-orientation', direction === 'n' || direction === 's' ? 'horizontal' : 'vertical');
-      handle.setAttribute(DATA_ATTRIBUTES.resizeDirection, direction);
+      handle.setAttribute(DATA_ATTRS.resizeDir, direction);
       container.appendChild(handle);
     }
 
@@ -426,8 +428,8 @@ export class VanillaModal {
     const headerLayout = this.configHelper.getAppearance('headerLayout');
 
     const buttonSelector = headerLayout === 'macos'
-      ? `.${CSS_CLASSES.headerLight}`
-      : `.${CSS_CLASSES.headerBtnWindows}`;
+      ? `.${CSS.headerLight}`
+      : `.${CSS.headerBtnWindows}`;
 
     this.headerEl.addEventListener(
       'pointerdown',
@@ -478,9 +480,9 @@ export class VanillaModal {
       this.resizeHandlesContainer.addEventListener(
         'pointerdown',
         (e) => {
-          const handle = (e.target as HTMLElement).closest(`.${CSS_CLASSES.resizeHandle}`);
+          const handle = (e.target as HTMLElement).closest(`.${CSS.resizeHandle}`);
           if (!handle) return;
-          const direction = handle.getAttribute(DATA_ATTRIBUTES.resizeDirection);
+          const direction = handle.getAttribute(DATA_ATTRS.resizeDir);
           if (direction) {
             this.controller.startResize(e, direction as ResizeDirection);
           }

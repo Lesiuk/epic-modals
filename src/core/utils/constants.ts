@@ -94,93 +94,11 @@ export const CSS = {
   reactFooterContent: 'react-modal-footer-content',
 } as const;
 
-export const CSS_CLASSES = {
-
-  dialog: CSS.modal,
-  dialogCentered: CSS.modalCentered,
-  dialogDragging: CSS.modalDragging,
-  dialogResizing: CSS.modalResizing,
-  dialogMinimizing: CSS.modalMinimizing,
-  dialogRestoring: CSS.modalRestoring,
-  dialogOpening: CSS.modalOpening,
-  dialogClosing: CSS.modalClosing,
-  dialogSolid: CSS.modalSolid,
-  dialogTransparent: CSS.modalTransparent,
-  dialogHasGlow: CSS.modalHasGlow,
-  dialogHasChild: CSS.modalHasChild,
-  dialogIsChild: CSS.modalIsChild,
-  dialogAnimatingPosition: CSS.modalAnimatingPosition,
-  dialogAttention: CSS.modalAttention,
-
-  header: CSS.header,
-  headerDraggable: CSS.headerDraggable,
-  headerLayout: (layout: string) => `modal-header--${layout}`,
-  body: CSS.body,
-  footer: CSS.footer,
-  childOverlay: CSS.childOverlay,
-  overlayClosing: CSS.overlayClosing,
-
-  headerTitle: CSS.headerTitle,
-  headerIcon: CSS.headerIcon,
-  headerTitleGroup: CSS.headerTitleGroup,
-  headerActions: CSS.headerActions,
-
-  headerTrafficLights: CSS.headerTrafficLights,
-  headerLight: CSS.headerLight,
-  headerLightClose: CSS.headerLightClose,
-  headerLightMinimize: CSS.headerLightMinimize,
-  headerLightStyle: CSS.headerLightStyle,
-  headerLightDisabled: CSS.headerLightDisabled,
-  headerMacCenter: CSS.headerMacCenter,
-  headerMacSpacer: CSS.headerMacSpacer,
-
-  headerBtnWindows: CSS.headerBtnWindows,
-  headerBtnWindowsClose: CSS.headerBtnWindowsClose,
-  headerBtnWindowsStyle: CSS.headerBtnWindowsStyle,
-  headerBtnWindowsDisabled: CSS.headerBtnWindowsDisabled,
-
-  resizeHandles: CSS.resizeHandles,
-  resizeHandle: CSS.resizeHandle,
-  resizePrefix: CSS.resizePrefix,
-
-  dock: CSS.dock,
-  dockContainer: CSS.dockContainer,
-  dockItem: CSS.dockItem,
-  dockItemActive: CSS.dockItemActive,
-  dockItemHasGlow: CSS.dockItemHasGlow,
-  dockItemHasChild: CSS.dockItemHasChild,
-  dockItemLabelBeside: CSS.dockItemLabelBeside,
-  dockItemLabelBelow: CSS.dockItemLabelBelow,
-  dockItemIcon: CSS.dockItemIcon,
-  dockItemIconPlaceholder: CSS.dockItemIconPlaceholder,
-  dockItemLabel: CSS.dockItemLabel,
-  dockItemGlow: CSS.dockItemGlow,
-  dockChildIndicator: CSS.dockChildIndicator,
-  dockHandle: CSS.dockHandle,
-  dockHandleDragging: CSS.dockHandleDragging,
-  dockLeft: CSS.dockLeft,
-  dockRight: CSS.dockRight,
-  dockBottom: CSS.dockBottom,
-  dockFree: CSS.dockFree,
-  dockEmpty: CSS.dockEmpty,
-  dockFreeHorizontal: CSS.dockFreeHorizontal,
-  dockFreeVertical: CSS.dockFreeVertical,
-
-  backdrop: CSS.backdrop,
-  backdropVisible: CSS.backdropVisible,
-} as const;
-
 export const DATA_ATTRS = {
   modalId: 'data-modal-id',
   dockContainer: 'data-dock-container',
   resizeDir: 'data-resize-dir',
   modalBridge: 'data-modal-bridge',
-} as const;
-
-export const DATA_ATTRIBUTES = {
-  modalId: DATA_ATTRS.modalId,
-  resizeDirection: 'data-direction',
-  dockItemId: 'data-dock-item-id',
 } as const;
 
 export const RESIZE_DIRECTIONS = ['n', 's', 'e', 'w', 'ne', 'nw', 'se', 'sw'] as const;

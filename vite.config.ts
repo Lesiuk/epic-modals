@@ -1,8 +1,9 @@
+import { readFileSync } from 'fs';
+import { basename, resolve } from 'path';
 import { svelte } from '@sveltejs/vite-plugin-svelte';
 import dts from 'vite-plugin-dts';
 import terser from '@rollup/plugin-terser';
 import { defineConfig } from 'vite';
-import { resolve } from 'path';
 
 const terserConfig = {
   ecma: 2020,
@@ -22,71 +23,48 @@ const terserConfig = {
   toplevel: true,
 };
 
-const buildPhase = process.env.BUILD_PHASE || 'core';
-
 export default defineConfig(({ mode }) => ({
   plugins: [
     svelte(),
     dts({
-      include: buildPhase === 'core' ? ['src/core'] : ['src/svelte', 'src/react', 'src/vanilla', 'src/svelte.ts', 'src/react.ts', 'src/vanilla.ts'],
-      exclude: ['**/*.test.ts', '**/*.test.d.ts'],
+      tsconfigPath: './tsconfig.build.json',
+      exclude: ['**/*.test.ts', '**/*.test.tsx', '**/*.test.svelte', '**/*.test.d.ts'],
       rollupTypes: true,
       copyDtsFiles: false,
-      beforeWriteFile: (filePath, content) => ({
-        filePath,
-        content: content.replace(/\/\*\*[\s\S]*?\*\//g, '').replace(/\n{3,}/g, '\n\n'),
-      }),
+      beforeWriteFile: (filePath, content) => {
+        if (basename(filePath) === 'svelte.d.ts') {
+          return {
+            filePath,
+            content: readFileSync(resolve(__dirname, 'types/svelte.d.ts'), 'utf-8'),
+          };
+        }
+        return {
+          filePath,
+          content: content.replace(/\/\*\*[\s\S]*?\*\//g, '').replace(/\n{3,}/g, '\n\n'),
+        };
+      },
     }),
   ],
   build: {
-    emptyOutDir: buildPhase === 'core',
-    lib:
-      buildPhase === 'core'
-        ? {
-            entry: { core: resolve(__dirname, 'src/core/index.ts') },
-            formats: ['es'],
-            fileName: () => 'core.js',
-          }
-        : {
-            entry: {
-              svelte: resolve(__dirname, 'src/svelte.ts'),
-              react: resolve(__dirname, 'src/react.ts'),
-              vanilla: resolve(__dirname, 'src/vanilla.ts'),
-            },
-            formats: ['es'],
-            fileName: (_format, entryName) => `${entryName}.js`,
-          },
+    emptyOutDir: true,
+    lib: {
+      entry: {
+        index: resolve(__dirname, 'src/index.ts'),
+        svelte: resolve(__dirname, 'src/svelte.ts'),
+        react: resolve(__dirname, 'src/react.ts'),
+        vanilla: resolve(__dirname, 'src/vanilla.ts'),
+      },
+      formats: ['es'],
+      fileName: (_format, entryName) => `${entryName}.js`,
+    },
     rollupOptions: {
-      external:
-        buildPhase === 'core'
-          ? []
-          : (id: string) => {
-
-              if (/\/core(\/index)?(\.[tj]s)?$/.test(id) || id === '@/core') {
-                return true;
-              }
-
-              if (id === 'svelte' || id.startsWith('svelte/')) {
-                return true;
-              }
-
-              if (id === 'react' || id === 'react-dom' || id.startsWith('react/')) {
-                return true;
-              }
-              return false;
-            },
+      external: [/^react(-dom)?(\/.*)?$/, /^svelte(\/.*)?$/],
       output: {
-        plugins: mode === 'production' ? [terser(terserConfig)] : [],
         chunkFileNames: '[name].js',
-        ...(buildPhase === 'adapters' && {
-          paths: (id: string) => {
-
-            if (/\/core(\/index)?(\.[tj]s)?$/.test(id) || id === '@/core') {
-              return './core.js';
-            }
-            return id;
-          },
-        }),
+        manualChunks(id) {
+          if (id.includes('/src/core/')) return 'core';
+        },
+        plugins: mode === 'production' ? [terser(terserConfig)] : [],
       },
     },
     sourcemap: false,

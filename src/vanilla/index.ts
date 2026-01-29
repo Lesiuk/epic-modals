@@ -3,7 +3,7 @@ import { VanillaDock } from './VanillaDock';
 import { VanillaBackdrop } from './VanillaBackdrop';
 import type { ModalLibraryConfig } from '../core/config';
 import { setConfig, getConfig } from '../core/config';
-import { initializeStacking } from '../core/state/stacking';
+import { initializeStacking } from '../core/state/parent-child';
 import { initializeResizeListener, cleanupResizeListener } from '../core/state/layout';
 
 export {

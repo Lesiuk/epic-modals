@@ -1,4 +1,4 @@
-export { DURATIONS, EASINGS, getDuration, getEasing, type AnimationType } from './timing';
+export { DURATIONS, EASINGS, TIMEOUT_SAFETY_MARGIN, type AnimationType } from './timing';
 export {
   calculateMinimizeTransform,
   calculateRestoreTransform,

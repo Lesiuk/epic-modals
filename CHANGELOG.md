@@ -7,6 +7,48 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- **Symbol support for `ModalId`** — modal IDs can now be `string | symbol`
+  - Symbols get stable DOM-safe strings internally (e.g., `Symbol('settings')` → `data-modal-id="sym-settings-0"`)
+  - All adapters (React, Svelte, Vanilla) handle symbol-to-string conversion automatically
+  - Validation functions accept symbols alongside strings
+- Input validation for core API functions with helpful error messages
+  - `openModal`, `closeModal`, `minimizeModal`, `restoreModal`, `openChildModal` now throw descriptive errors when called with invalid arguments
+  - Example: `openModal: Missing required 'source' parameter. Expected an HTMLElement or Position object {x, y}.`
+
+### Changed
+- Z-index management now O(1) instead of O(n) — tracked `maxZIndex` counter replaces scanning all modals
+- React `Backdrop` and `useModalConfig` now use event subscriptions instead of `setInterval(50ms)` polling
+- React `useModals()` snapshot caching no longer creates unnecessary objects when counts are unchanged
+- Svelte adapter no longer re-exports core functions — clean separation between `epic-modals` (core) and `epic-modals/svelte` (components + hooks only)
+- Consolidated state directory from 16 files to 8 files for clearer organization
+  - `store.ts`: merged internal.ts + events.ts + validation.ts (core state, event emitter, validation)
+  - `operations.ts`: merged registration.ts + open-close.ts + minimize.ts + effects.ts (all modal operations)
+  - `position.ts`: merged position.ts + zindex.ts (position, size, z-index management)
+  - `parent-child.ts`: merged parent-child.ts + stacking.ts (parent-child relationships, stacking context)
+  - Kept as-is: layout.ts, hierarchy.ts, pending-factory.ts, index.ts
+- Deleted `pending.ts` wrapper module (~218 lines); all consumers now use `pending` factory directly
+  - `pending.has('type', id)` replaces `hasPendingX(id)` wrapper functions
+  - `pending.consume('type', id)` replaces `consumePendingX(id)` wrapper functions
+  - Complex side-effect logic (activeAttention, openSourcePositions, pendingParentAnimations, etc.) inlined at call sites
+- StateManager refactored to use structured state instead of scattered boolean flags
+  - Replaced 11 boolean flags with `ModalPhase` enum + `ModalFlags` struct + `ParentAnimationState` struct
+  - Added phase transition validation for debugging (warns in development mode for unexpected transitions)
+  - Eliminated impossible state combinations
+  - Improved code maintainability and readability
+
+### Fixed
+- **Svelte component typings** — `dist/svelte.d.ts` now exports fully typed `Component<Props>` for all 7 components instead of bare `SvelteComponent` with no prop info
+  - Handwritten type declarations with correct `Snippet` types for children, footer, renderIcon, etc.
+  - Consumers now get full IntelliSense for all component props
+- React `getOpenCount` now checks `m.isOpen` flag, matching Svelte's behavior (was counting all non-minimized modals as "open")
+- React `useModal` `isOpen` now checks the modal's actual `isOpen` state instead of just `!isMinimized`
+- Child modal minimize animation not playing (especially on second minimize cycle)
+  - StateManager now properly retries starting the animation when element becomes available
+  - Children are queued for animation BEFORE hiding them to ensure they're in the animation queue when StateManagers are triggered
+- Child modals no longer animate minimize after restore
+  - When restoring, `pendingMinimizeWithParent` is now cleared to prevent stale pending state from triggering minimize animation
+
 ## [1.0.6] - 2026-01-29
 
 ### Fixed
@@ -17,6 +59,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Child modals no longer get unregistered when parent is minimized
   - When parent modal minimizes, its content is unmounted which would unmount child modal components
   - Child modals now preserve their state when hidden with parent and properly restore
+- Deeply nested modal hierarchies (4+ levels) now restore correctly after minimize
+  - Fixed race condition: `isHiddenWithParent` is now set synchronously before state version increment
+  - Previously, Svelte reactivity could unmount deeply nested children before their hidden state was set
 
 ## [1.0.5] - 2026-01-28
 

@@ -22,6 +22,10 @@
     "*.css"
   ],
   "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
     "./svelte": {
       "types": "./dist/svelte.d.ts",
       "svelte": "./dist/svelte.js",
@@ -50,7 +54,7 @@
     "LICENSE"
   ],
   "scripts": {
-    "build": "BUILD_PHASE=core vite build && BUILD_PHASE=adapters vite build && node scripts/build-css.js",
+    "build": "vite build && node scripts/build-css.js",
     "prepublishOnly": "npm run build"
   },
   "peerDependencies": {

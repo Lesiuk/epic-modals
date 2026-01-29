@@ -1,14 +1,13 @@
 import type { Position, Dimensions, ModalId } from '../types';
 import { computeStyle, computeCssClasses } from './Styling';
-import { ModalLifecycle } from './Lifecycle';
 import { createDragBehavior, type DragBehavior } from '../behaviors/drag';
 import { createResizeBehavior, type ResizeBehavior, type ResizeDirection } from '../behaviors/resize';
 import { createAnimationController, type AnimationController } from '../animation/controller';
 import { ModalPositioning } from './Positioning';
 import { ModalInteractions } from './Interactions';
 import { ModalStateManager } from './StateManager';
-import { createEventEmitter } from '../state/events';
-import { toDataId, getModalDialogElement } from '../utils/helpers';
+import { createEventEmitter } from '../state/store';
+import { getModalDialogElement, toDataId } from '../utils/helpers';
 import {
   getModalState,
   updateModal,
@@ -17,19 +16,13 @@ import {
   bringToFront,
   updateModalPosition,
   isTopModal,
-  hasPendingMinimize,
-  hasPendingMinimizeWithParent,
-  hasPendingForceClose,
-  consumePendingForceClose,
-  hasPendingClose,
-  hasPendingRestore,
-  hasPendingChildRestore,
   toggleModalTransparency,
-  hasPendingParentLinkFor,
   triggerCascadingParentAnimations,
   subscribe as subscribeToState,
   registerModal,
 } from '../state';
+import { pending } from '../state/pending-factory';
+import { pendingParentLink } from '../state/store';
 import { getConfig } from '../config';
 import { flipAnimate } from '../animation/flip';
 import { DURATIONS } from '../animation/timing';
@@ -56,9 +49,11 @@ export class ModalController {
   private resize: ResizeBehavior;
   private animation: AnimationController;
   private positioning: ModalPositioning;
-  private lifecycle: ModalLifecycle;
   private interactions: ModalInteractions;
   private stateManager!: ModalStateManager;
+
+  private _element: HTMLElement | null = null;
+  private _resizeHandler: (() => void) | null = null;
 
   private overlayClosing = false;
 
@@ -90,7 +85,7 @@ export class ModalController {
     });
 
     this.animation = createAnimationController({
-      getId: () => this.id,
+      getId: () => this.dataId,
       getElement: () => this.element,
       getPosition: () => this.drag.getPosition(),
       setPosition: (pos) => this.drag.setPosition(pos),
@@ -160,25 +155,9 @@ export class ModalController {
       focusFirst: () => this.interactions.focusFirst(),
     });
 
-    if (hasPendingParentLinkFor(options.id)) {
+    if (pendingParentLink?.childId === options.id) {
       this.stateManager.wasRestored = true;
     }
-
-    this.lifecycle = new ModalLifecycle({
-      onMount: () => {
-        this.handleStateChange();
-        this.handlePendingStates();
-        this.notifyStateChange();
-      },
-      onDestroy: () => {
-        this.unsubscribeState?.();
-        this.drag.destroy();
-        this.resize.destroy();
-        this.animation.destroy();
-        this.emitter.off();
-      },
-      onWindowResize: () => this.handleWindowResize(),
-    });
 
     this.drag.subscribe(() => this.notifyStateChange());
     this.resize.subscribe(() => this.notifyStateChange());
@@ -203,15 +182,29 @@ export class ModalController {
   }
 
   mount(element: HTMLElement): void {
-    this.lifecycle.mount(element);
+    this._element = element;
+    this._resizeHandler = () => this.handleWindowResize();
+    window.addEventListener('resize', this._resizeHandler);
+    this.handleStateChange();
+    this.handlePendingStates();
+    this.notifyStateChange();
   }
 
   destroy(): void {
-    this.lifecycle.destroy();
+    if (this._resizeHandler) {
+      window.removeEventListener('resize', this._resizeHandler);
+      this._resizeHandler = null;
+    }
+    this._element = null;
+    this.unsubscribeState?.();
+    this.drag.destroy();
+    this.resize.destroy();
+    this.animation.destroy();
+    this.emitter.off();
   }
 
   private get element(): HTMLElement | null {
-    return this.lifecycle.getElement();
+    return this._element;
   }
 
   private handleWindowResize(): void {
@@ -267,11 +260,11 @@ export class ModalController {
     const animState = this.animation.getState();
 
     const isVisible = modalState
-      ? (modalState.isOpen || hasPendingClose(this.id)) &&
-        (!modalState.isMinimized || hasPendingMinimize(this.id)) &&
+      ? (modalState.isOpen || pending.has('close', this.id)) &&
+        (!modalState.isMinimized || pending.has('minimize', this.id)) &&
         (!modalState.isHiddenWithParent ||
-          hasPendingMinimizeWithParent(this.id) ||
-          hasPendingChildRestore(this.id))
+          pending.has('minimizeWithParent', this.id) ||
+          pending.has('childRestore', this.id))
       : false;
 
     const hasChild = !!modalState?.childId;
@@ -292,10 +285,10 @@ export class ModalController {
       : dragState.hasBeenDragged;
 
     const isAwaitingRestore =
-      (hasPendingChildRestore(this.id) || hasPendingRestore(this.id)) && !isRestoring;
+      (pending.has('childRestore', this.id) || pending.has('restore', this.id)) && !isRestoring;
 
     const isAwaitingChildOpen =
-      (isChildModal || hasPendingParentLinkFor(this.id)) &&
+      (isChildModal || pendingParentLink?.childId === this.id) &&
       !isOpening &&
       (!effectiveHasBeenDragged || !!this.animation.getPendingOpenSource());
 
@@ -310,7 +303,7 @@ export class ModalController {
       !isAwaitingChildOpen;
 
     let dataState = 'closed';
-    if (isMinimizing || hasPendingMinimize(this.id)) dataState = 'minimizing';
+    if (isMinimizing || pending.has('minimize', this.id)) dataState = 'minimizing';
     else if (isRestoring) dataState = 'restoring';
     else if (isOpening) dataState = 'opening';
     else if (isClosing) dataState = 'closing';
@@ -449,8 +442,8 @@ export class ModalController {
   }
 
   close(): void {
-    if (hasPendingForceClose(this.id)) {
-      consumePendingForceClose(this.id);
+    if (pending.has('forceClose', this.id)) {
+      pending.consume('forceClose', this.id);
     }
     closeModal(this.id);
     this.options.onClose?.();
@@ -557,7 +550,7 @@ export class ModalController {
           offsetFromParent: newOffset,
         });
 
-        const element = this.lifecycle.getElement();
+        const element = this._element;
         if (element) {
           flipAnimate(element, oldPosition, centeredPos, {
             duration: DURATIONS.centerAfterResize,
@@ -579,7 +572,7 @@ export class ModalController {
     const state = getModalState(this.id);
     if (!state) return;
 
-    if (state.parentId || hasPendingParentLinkFor(this.id)) {
+    if (state.parentId || pendingParentLink?.childId === this.id) {
       this.stateManager.wasRestored = true;
     }
 

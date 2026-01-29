@@ -1,10 +1,10 @@
 <script lang="ts">  import { fade } from 'svelte/transition';
   import { getConfig } from '../../core/config';
-  import { getLayerZIndex } from '../../core/state/stacking';
+  import { getLayerZIndex } from '../../core/state/parent-child';
   import { getReactiveStateVersion, getReactiveConfigVersion } from '../stores.svelte';
   import { hasOpenModals, isBackdropEnabled, getBackdropConfig } from '../../core/utils/backdrop';
   import Portal from './Portal.svelte';
-  import { CSS_CLASSES } from '../../core/utils/constants';
+  import { CSS } from '../../core/utils/constants';
 
   const config = $derived.by(() => {
     getReactiveConfigVersion();
@@ -32,7 +32,7 @@
 <Portal target={config.portalTarget}>
   {#if hasOpenModal && backdropEnabled}
     <div
-      class={CSS_CLASSES.backdrop}
+      class={CSS.backdrop}
       class:backdrop-visible={backdropConfig.visible}
       class:backdrop-blocking={backdropConfig.blockClicks}
       style:z-index={backdropZIndex}

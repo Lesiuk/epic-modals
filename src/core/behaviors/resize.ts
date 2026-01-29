@@ -1,6 +1,6 @@
 import type { Position, Dimensions } from '../types';
 import { constrainSizeToViewport } from '../utils/viewport';
-import { createEventEmitter } from '../state/events';
+import { createEventEmitter } from '../state/store';
 import { DEFAULTS } from '../utils/constants';
 
 export type ResizeDirection = 'n' | 's' | 'e' | 'w' | 'ne' | 'nw' | 'se' | 'sw' | '';

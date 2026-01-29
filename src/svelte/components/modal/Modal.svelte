@@ -5,13 +5,9 @@
     registerModal,
     unregisterModal,
     createModalRegistration,
-  } from '../../../core/state/registration';
-  import {
-    getModalState,
-    hasPendingOpen,
-    hasPendingClose,
-    hasPendingMinimize,
-  } from '../../../core/state';
+  } from '../../../core/state/operations';
+  import { getModalState } from '../../../core/state';
+  import { pending } from '../../../core/state/pending-factory';
   import { getReactiveStateVersion } from '../../stores.svelte';
   import ModalInner from './ModalInner.svelte';
 
@@ -67,9 +63,9 @@
 
     return state.isOpen ||
            state.isMinimized ||
-           hasPendingOpen(id) ||
-           hasPendingClose(id) ||
-           hasPendingMinimize(id);
+           pending.has('open', id) ||
+           pending.has('close', id) ||
+           pending.has('minimize', id);
   });
 </script>
 

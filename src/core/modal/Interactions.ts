@@ -1,5 +1,5 @@
 import type { ResizeDirection } from '../behaviors/resize';
-import type { ModalFeatures } from '../types';
+import type { ModalId, ModalFeatures } from '../types';
 import { trapFocus, focusFirstElement } from '../behaviors/focusTrap';
 
 export interface InteractionConfigHelper {
@@ -27,7 +27,7 @@ export interface InteractionState {
 }
 
 export interface ModalInteractionsOptions {
-  id: string;
+  id: ModalId;
   configHelper: InteractionConfigHelper;
   getDragBehavior: () => InteractionDragBehavior;
   getResizeBehavior: () => InteractionResizeBehavior;

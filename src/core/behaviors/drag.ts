@@ -1,6 +1,6 @@
 import type { Position, Dimensions } from '../types';
 import { constrainToViewport } from '../utils/viewport';
-import { createEventEmitter } from '../state/events';
+import { createEventEmitter } from '../state/store';
 
 export interface DragState {
   isDragging: boolean;

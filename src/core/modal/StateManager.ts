@@ -9,36 +9,46 @@ import {
   unhideChildModal,
   resetModalTransparency,
   clearPositionAnimation,
-  hasPendingOpen,
-  consumePendingOpen,
-  consumeOpenSourcePosition,
-  hasPendingMinimize,
-  consumePendingMinimize,
-  consumePendingMinimizeTarget,
-  hasPendingMinimizeWithParent,
-  consumePendingMinimizeWithParent,
   finalizeChildMinimize,
-  hasPendingForceClose,
-  consumePendingForceClose,
-  hasPendingClose,
-  consumePendingClose,
-  hasPendingRestore,
-  consumePendingRestore,
-  hasPendingChildRestore,
-  consumePendingChildRestore,
-  hasPendingAttention,
-  consumePendingAttention,
-  startAttentionAnimation,
-  endAttentionAnimation,
-  consumePendingParentLink,
-  getPendingParentLink,
-  hasPendingParentAnimation,
-  consumePendingParentAnimation,
   triggerCascadingParentAnimations,
 } from '../state';
+import { pending } from '../state/pending-factory';
+import {
+  activeAttention,
+  setActiveAttention,
+  setPendingMinimizeTarget,
+  openSourcePositions,
+  pendingParentLink,
+  setPendingParentLink,
+  pendingParentAnimations,
+} from '../state/store';
 import { DURATIONS, TIMEOUT_SAFETY_MARGIN } from '../animation/timing';
 import { flipAnimate } from '../animation/flip';
 import { whenHasDimensions } from '../utils/dom';
+
+export type ModalPhase =
+  | 'idle'
+  | 'opening'
+  | 'open'
+  | 'minimizing'
+  | 'minimized'
+  | 'restoring'
+  | 'closing';
+
+interface ModalFlags {
+  isAttentionAnimating: boolean;
+  glowStabilizing: boolean;
+  wasRestored: boolean;
+  isAnimatingToCenter: boolean;
+  restoreHold: boolean;
+}
+
+interface ParentAnimationState {
+  inFlight: boolean;
+  startTime: number;
+  deferredTarget: Position | null;
+  cancelCleanup: (() => void) | null;
+}
 
 export interface StateManagerPositioning {
   centerChildOnParent: (parentId: ModalId) => boolean;
@@ -76,24 +86,53 @@ export class ModalStateManager {
   private id: ModalId;
   private options: ModalStateManagerOptions;
 
-  private _isHandlingMinimize = false;
-  private _isAttentionAnimating = false;
-  private _wasRestored: boolean;
-  private _glowStabilizing = false;
-  private _restoreHold = false;
-  private _isAnimatingToCenter = false;
-  private _cancelParentAnimationCleanup: (() => void) | null = null;
-  private _parentFlipInFlight = false;
-  private _deferredParentTarget: Position | null = null;
-  private _parentFlipStartTime = 0;
+  private _phase: ModalPhase = 'idle';
+
+  private _flags: ModalFlags = {
+    isAttentionAnimating: false,
+    glowStabilizing: false,
+    wasRestored: false,
+    isAnimatingToCenter: false,
+    restoreHold: false,
+  };
+
+  private _parentAnimation: ParentAnimationState = {
+    inFlight: false,
+    startTime: 0,
+    deferredTarget: null,
+    cancelCleanup: null,
+  };
 
   private _isHandlingPendingStates = false;
 
   constructor(options: ModalStateManagerOptions) {
     this.id = options.id;
     this.options = options;
+  }
 
-    this._wasRestored = false;
+  private setPhase(newPhase: ModalPhase): void {
+
+    if (import.meta.env.DEV) {
+      const validTransitions: Record<ModalPhase, ModalPhase[]> = {
+        'idle': ['opening', 'minimizing', 'closing', 'open', 'restoring'],
+        'opening': ['open', 'closing', 'idle', 'minimizing'],
+        'open': ['minimizing', 'closing', 'idle', 'restoring'],
+        'minimizing': ['minimized', 'closing', 'idle'],
+        'minimized': ['restoring', 'closing', 'idle'],
+        'restoring': ['open', 'closing', 'idle', 'minimizing'],
+        'closing': ['idle'],
+      };
+
+      if (!validTransitions[this._phase].includes(newPhase)) {
+        console.warn(`[StateManager] Unexpected phase transition: ${this._phase} → ${newPhase}`);
+      }
+    }
+
+    this._phase = newPhase;
+  }
+
+  get phase(): ModalPhase {
+    return this._phase;
   }
 
   handlePendingStates(): void {
@@ -126,19 +165,20 @@ export class ModalStateManager {
   }
 
   private handlePendingForceClose(): boolean {
-    if (!hasPendingForceClose(this.id)) return false;
+    if (!pending.has('forceClose', this.id)) return false;
 
-    consumePendingForceClose(this.id);
+    pending.consume('forceClose', this.id);
     finalizeModalClose(this.id);
     this.options.options.onClose?.();
     return true;
   }
 
   private handlePendingMinimize(): void {
-    if (!hasPendingMinimize(this.id) || this._isHandlingMinimize) return;
+    if (!pending.has('minimize', this.id) || this._phase === 'minimizing') return;
 
-    this._isHandlingMinimize = true;
-    consumePendingMinimizeTarget();
+    this.setPhase('minimizing');
+
+    setPendingMinimizeTarget(null);
 
     const element = this.options.getElement();
     if (element) {
@@ -162,20 +202,20 @@ export class ModalStateManager {
 
     const animation = this.options.getAnimationController();
     const started = animation.startMinimize(undefined, () => {
-      consumePendingMinimize(this.id);
-      this._isHandlingMinimize = false;
+      pending.consume('minimize', this.id);
+      this.setPhase('minimized');
     });
 
     if (!started) {
 
-      this._isHandlingMinimize = false;
+      this.setPhase('open');
     }
   }
 
   private handlePendingMinimizeWithParent(): void {
-    if (!hasPendingMinimizeWithParent(this.id) || this._isHandlingMinimize) return;
+    if (!pending.has('minimizeWithParent', this.id) || this._phase === 'minimizing') return;
 
-    this._isHandlingMinimize = true;
+    this.setPhase('minimizing');
 
     const element = this.options.getElement();
     if (element) {
@@ -198,20 +238,26 @@ export class ModalStateManager {
     }
 
     const animation = this.options.getAnimationController();
-    animation.startMinimize(undefined, () => {
-      consumePendingMinimizeWithParent(this.id);
+    const started = animation.startMinimize(undefined, () => {
+      pending.consume('minimizeWithParent', this.id);
       finalizeChildMinimize(this.id);
-      this._isHandlingMinimize = false;
+      this.setPhase('minimized');
     });
+
+    if (!started) {
+
+      this.setPhase('open');
+    }
   }
 
   private handlePendingRestore(): void {
-    if (!hasPendingRestore(this.id)) return;
+    if (!pending.has('restore', this.id)) return;
 
     const modalState = getModalState(this.id);
     const animation = this.options.getAnimationController();
 
-    consumePendingRestore(this.id);
+    pending.consume('restore', this.id);
+    this.setPhase('restoring');
 
     animation.startRestore(
       modalState?.position ?? undefined,
@@ -224,36 +270,40 @@ export class ModalStateManager {
   }
 
   private handlePendingChildRestore(): void {
-    if (!hasPendingChildRestore(this.id)) return;
+    if (!pending.has('childRestore', this.id)) return;
 
     const modalState = getModalState(this.id);
     const animation = this.options.getAnimationController();
 
-    consumePendingChildRestore(this.id);
+    pending.consume('childRestore', this.id);
+    this.setPhase('restoring');
 
     animation.startRestore(
       modalState?.position ?? undefined,
       modalState?.size ?? undefined
     );
     unhideChildModal(this.id);
-    this._wasRestored = true;
+    this._flags.wasRestored = true;
   }
 
   private handlePendingClose(): boolean {
-    if (!hasPendingClose(this.id)) return false;
+    if (!pending.has('close', this.id)) return false;
 
-    consumePendingClose(this.id);
+    pending.consume('close', this.id);
+    this.setPhase('closing');
     const animation = this.options.getAnimationController();
 
     const started = animation.startClose(() => {
       resetModalTransparency(this.id);
       finalizeModalClose(this.id);
+      this.setPhase('idle');
       this.options.options.onClose?.();
     });
 
     if (!started) {
       resetModalTransparency(this.id);
       finalizeModalClose(this.id);
+      this.setPhase('idle');
       this.options.options.onClose?.();
     }
 
@@ -261,19 +311,24 @@ export class ModalStateManager {
   }
 
   private handlePendingParentLink(): { parentId: ModalId; childId: ModalId } | null {
-    const pendingLink = getPendingParentLink();
-    if (pendingLink && pendingLink.childId === this.id) {
-      updateModal(this.id, { parentId: pendingLink.parentId });
-      this._wasRestored = true;
+    const link = pendingParentLink;
+    if (link && link.childId === this.id) {
+      updateModal(this.id, { parentId: link.parentId });
+      this._flags.wasRestored = true;
     }
 
-    return consumePendingParentLink(this.id);
+    if (this.id && link?.childId !== this.id) {
+      return null;
+    }
+    setPendingParentLink(null);
+    return link;
   }
 
   private handlePendingOpen(link: { parentId: ModalId; childId: ModalId } | null): boolean {
-    if (!hasPendingOpen(this.id)) return false;
+    if (!pending.has('open', this.id)) return false;
 
-    consumePendingOpen(this.id);
+    pending.consume('open', this.id);
+    this.setPhase('opening');
 
     const drag = this.options.getDragBehavior();
     const resize = this.options.getResizeBehavior();
@@ -283,8 +338,11 @@ export class ModalStateManager {
     drag.setHasBeenDragged(false);
     resize.reset();
 
+    const storedSourcePos = openSourcePositions.get(this.id) ?? null;
+    openSourcePositions.delete(this.id);
+
     const sourcePos =
-      consumeOpenSourcePosition(this.id) ||
+      storedSourcePos ||
       this.options.options.openSourcePosition ||
       null;
 
@@ -303,6 +361,7 @@ export class ModalStateManager {
       }
     } else if (!isChildModalNow) {
       this.options.getPositioning().scheduleSmartPositioning();
+      this.setPhase('open');
     }
 
     requestAnimationFrame(() => {
@@ -321,14 +380,16 @@ export class ModalStateManager {
         const centered = positioning.centerChildOnParent(parentId);
         if (centered) {
           animation.startOpen();
-          this._wasRestored = true;
+          this._flags.wasRestored = true;
+          this.setPhase('open');
         }
       })
       .catch(() => {
         const centered = positioning.centerChildOnParent(parentId);
         if (centered) {
           animation.startOpen();
-          this._wasRestored = true;
+          this._flags.wasRestored = true;
+          this.setPhase('open');
         }
       });
   }
@@ -341,44 +402,49 @@ export class ModalStateManager {
       .then(() => {
         positioning.applySmartPositioning();
         animation.startOpen();
+        this.setPhase('open');
       })
       .catch(() => {
         positioning.applySmartPositioning();
         animation.startOpen();
+        this.setPhase('open');
       });
   }
 
   private handlePendingAttention(): void {
-    if (!hasPendingAttention(this.id)) return;
+    if (!pending.has('attention', this.id)) return;
 
-    consumePendingAttention(this.id);
-    startAttentionAnimation(this.id);
-    this._isAttentionAnimating = true;
+    pending.consume('attention', this.id);
+
+    if (!activeAttention.includes(this.id)) {
+      setActiveAttention([...activeAttention, this.id]);
+    }
+    this._flags.isAttentionAnimating = true;
 
     setTimeout(() => {
-      this._isAttentionAnimating = false;
-      endAttentionAnimation(this.id);
+      this._flags.isAttentionAnimating = false;
       this.options.onStateChange();
     }, 600);
   }
 
   private handlePendingParentAnimation(): void {
-    if (!hasPendingParentAnimation(this.id)) return;
+    if (!pendingParentAnimations.has(this.id)) return;
 
-    const targetPosition = consumePendingParentAnimation(this.id);
+    const targetPosition = pendingParentAnimations.get(this.id) ?? null;
+    pendingParentAnimations.delete(this.id);
     if (!targetPosition) return;
 
-    if (this._parentFlipInFlight) {
-      const elapsed = Date.now() - this._parentFlipStartTime;
+    if (this._parentAnimation.inFlight) {
+      const elapsed = Date.now() - this._parentAnimation.startTime;
       if (elapsed < DURATIONS.parentRetargetInterval) {
 
-        this._deferredParentTarget = targetPosition;
+        this._parentAnimation.deferredTarget = targetPosition;
         return;
       }
 
     }
 
-    this._deferredParentTarget = null;
+    this._parentAnimation.deferredTarget = null;
     this.startParentFlip(targetPosition);
   }
 
@@ -401,19 +467,19 @@ export class ModalStateManager {
     drag.setPosition(targetPosition);
     drag.setHasBeenDragged(true);
 
-    this._cancelParentAnimationCleanup?.();
-    this._parentFlipInFlight = true;
-    this._parentFlipStartTime = Date.now();
+    this._parentAnimation.cancelCleanup?.();
+    this._parentAnimation.inFlight = true;
+    this._parentAnimation.startTime = Date.now();
     const id = this.id;
 
     const onComplete = () => {
-      this._parentFlipInFlight = false;
-      this._cancelParentAnimationCleanup = null;
+      this._parentAnimation.inFlight = false;
+      this._parentAnimation.cancelCleanup = null;
       clearPositionAnimation(id);
 
-      const deferred = this._deferredParentTarget;
+      const deferred = this._parentAnimation.deferredTarget;
       if (deferred) {
-        this._deferredParentTarget = null;
+        this._parentAnimation.deferredTarget = null;
         this.startParentFlip(deferred);
       } else {
         triggerCascadingParentAnimations(id);
@@ -421,7 +487,7 @@ export class ModalStateManager {
     };
 
     if (element && oldPosition) {
-      this._cancelParentAnimationCleanup = flipAnimate(element, oldPosition, targetPosition, {
+      this._parentAnimation.cancelCleanup = flipAnimate(element, oldPosition, targetPosition, {
         duration: DURATIONS.parentMove,
         onComplete,
       });
@@ -441,42 +507,42 @@ export class ModalStateManager {
   }
 
   get wasRestored(): boolean {
-    return this._wasRestored;
+    return this._flags.wasRestored;
   }
 
   set wasRestored(value: boolean) {
-    this._wasRestored = value;
+    this._flags.wasRestored = value;
   }
 
   get isAttentionAnimating(): boolean {
-    return this._isAttentionAnimating;
+    return this._flags.isAttentionAnimating;
   }
 
   get glowStabilizing(): boolean {
-    return this._glowStabilizing;
+    return this._flags.glowStabilizing;
   }
 
   set glowStabilizing(value: boolean) {
-    this._glowStabilizing = value;
+    this._flags.glowStabilizing = value;
   }
 
   get restoreHold(): boolean {
-    return this._restoreHold;
+    return this._flags.restoreHold;
   }
 
   set restoreHold(value: boolean) {
-    this._restoreHold = value;
+    this._flags.restoreHold = value;
   }
 
   get isAnimatingToCenter(): boolean {
-    return this._isAnimatingToCenter;
+    return this._flags.isAnimatingToCenter;
   }
 
   set isAnimatingToCenter(value: boolean) {
-    this._isAnimatingToCenter = value;
+    this._flags.isAnimatingToCenter = value;
   }
 
   get isHandlingMinimize(): boolean {
-    return this._isHandlingMinimize;
+    return this._phase === 'minimizing';
   }
 }

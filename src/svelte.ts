@@ -8,9 +8,3 @@ export { default as Portal } from './svelte/components/Portal.svelte';
 
 export { useModal } from './svelte/hooks/useModal.svelte';
 export { useModalZIndex } from './svelte/hooks/useModalZIndex.svelte';
-
-export { openModal, closeModal, openChildModal, triggerAttention } from './core/state';
-
-export { setConfig, getConfig } from './core/config';
-
-export type { ModalId, DockPosition, DockLabelMode, HeaderLayout } from './core/types';

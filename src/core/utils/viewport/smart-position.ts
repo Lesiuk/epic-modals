@@ -1,6 +1,60 @@
-import type { Position } from '../../types';
-import type { ModalBounds, ModalLayoutInfo, SmartLayoutOptions, SmartLayoutResult } from './types';
-import { calculateOverlap, calculateTotalOverlap } from './overlap';
+import type { Position, Bounds } from '../../types';
+
+export interface ModalBounds {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+}
+
+export interface ViewportConstraintOptions {
+
+  margin?: number;
+
+  allowPartialVisibility?: boolean;
+}
+
+export interface SmartPositionOptions {
+
+  modalGap?: number;
+
+  margin?: number;
+
+  gridResolution?: number;
+
+  avoidBounds?: ModalBounds[];
+
+  avoidMargin?: number;
+}
+
+export interface ModalBoundsWithId extends ModalBounds {
+  id: string;
+}
+
+export interface ModalLayoutInfo {
+  id: string;
+  width: number;
+  height: number;
+  currentPosition: Position;
+
+  parentId?: string;
+}
+
+export interface SmartLayoutOptions {
+
+  modalGap?: number;
+
+  viewportMargin?: number;
+
+  avoidBounds?: ModalBounds[];
+
+  avoidMargin?: number;
+}
+
+export interface SmartLayoutResult {
+
+  positions: Map<string, Position>;
+}
 
 const LAYOUT_SCORING = {
 
@@ -25,6 +79,11 @@ const CASCADE = {
   TITLE_BAR_HEIGHT: 40,
 } as const;
 
+const CONSTRAINT = {
+  DEFAULT_MARGIN: 8,
+  MIN_VISIBLE: 40,
+} as const;
+
 interface AvailableArea {
   x: number;
   y: number;
@@ -44,6 +103,120 @@ interface ModalToPlace {
   id: string;
   width: number;
   height: number;
+}
+
+export function calculateOverlap(
+  a: { x: number; y: number; width: number; height: number },
+  b: { x: number; y: number; width: number; height: number }
+): number {
+  const overlapX = Math.max(0, Math.min(a.x + a.width, b.x + b.width) - Math.max(a.x, b.x));
+  const overlapY = Math.max(0, Math.min(a.y + a.height, b.y + b.height) - Math.max(a.y, b.y));
+  return overlapX * overlapY;
+}
+
+export function calculateTotalOverlap(
+  x: number,
+  y: number,
+  width: number,
+  height: number,
+  existingModals: ModalBounds[],
+  gap: number
+): number {
+  const newModal = { x: x - gap, y: y - gap, width: width + gap * 2, height: height + gap * 2 };
+  let totalOverlap = 0;
+  for (const modal of existingModals) {
+    totalOverlap += calculateOverlap(newModal, modal);
+  }
+  return totalOverlap;
+}
+
+export function getElementBounds(selectors: string[]): ModalBounds[] {
+  if (typeof document === 'undefined') return [];
+
+  const bounds: ModalBounds[] = [];
+  for (const selector of selectors) {
+    try {
+      const elements = document.querySelectorAll(selector);
+      for (const el of elements) {
+        const rect = el.getBoundingClientRect();
+        if (rect.width > 0 && rect.height > 0) {
+          bounds.push({
+            x: rect.left,
+            y: rect.top,
+            width: rect.width,
+            height: rect.height,
+          });
+        }
+      }
+    } catch {
+
+    }
+  }
+  return bounds;
+}
+
+export function constrainToViewport(
+  x: number,
+  y: number,
+  width: number,
+  height: number,
+  options: ViewportConstraintOptions = {}
+): Position {
+  const { margin = CONSTRAINT.DEFAULT_MARGIN, allowPartialVisibility = false } = options;
+
+  const vw = typeof window !== 'undefined' ? window.innerWidth : 1920;
+  const vh = typeof window !== 'undefined' ? window.innerHeight : 1080;
+
+  let minX: number, maxX: number, minY: number, maxY: number;
+
+  if (allowPartialVisibility && width > vw - margin * 2) {
+    minX = CONSTRAINT.MIN_VISIBLE - width;
+    maxX = vw - CONSTRAINT.MIN_VISIBLE;
+  } else {
+    minX = margin;
+    maxX = Math.max(margin, vw - width - margin);
+  }
+
+  if (allowPartialVisibility && height > vh - margin * 2) {
+    minY = CONSTRAINT.MIN_VISIBLE - height;
+    maxY = vh - CONSTRAINT.MIN_VISIBLE;
+  } else {
+    minY = margin;
+    maxY = Math.max(margin, vh - height - margin);
+  }
+
+  return {
+    x: Math.max(minX, Math.min(maxX, x)),
+    y: Math.max(minY, Math.min(maxY, y)),
+  };
+}
+
+export function constrainSizeToViewport(
+  x: number,
+  y: number,
+  width: number,
+  height: number,
+  options: ViewportConstraintOptions = {}
+): Bounds {
+  const { margin = CONSTRAINT.DEFAULT_MARGIN } = options;
+
+  const vw = typeof window !== 'undefined' ? window.innerWidth : 1920;
+  const vh = typeof window !== 'undefined' ? window.innerHeight : 1080;
+
+  const maxWidth = vw - margin * 2;
+  const maxHeight = vh - margin * 2;
+
+  const clampedWidth = Math.min(width, maxWidth);
+  const clampedHeight = Math.min(height, maxHeight);
+
+  const pos = constrainToViewport(x, y, clampedWidth, clampedHeight, options);
+
+  return {
+    x: pos.x,
+    y: pos.y,
+    width: clampedWidth,
+    height: clampedHeight,
+  };
 }
 
 export function computeAvailableArea(

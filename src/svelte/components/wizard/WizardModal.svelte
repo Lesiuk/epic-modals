@@ -4,13 +4,9 @@
   import {
     registerModal,
     unregisterModal,
-  } from '../../../core/state/registration';
-  import {
-    getModalState,
-    hasPendingOpen,
-    hasPendingClose,
-    hasPendingMinimize,
-  } from '../../../core/state';
+  } from '../../../core/state/operations';
+  import { getModalState } from '../../../core/state';
+  import { pending } from '../../../core/state/pending-factory';
   import { getReactiveStateVersion } from '../../stores.svelte';
   import { getModalDialogElement } from '../../../core/utils/helpers';
   import ModalInner from '../modal/ModalInner.svelte';
@@ -211,7 +207,7 @@
     getReactiveStateVersion();
     const state = getModalState(id);
     if (!state) return false;
-    return state.isOpen || state.isMinimized || hasPendingOpen(id) || hasPendingClose(id) || hasPendingMinimize(id);
+    return state.isOpen || state.isMinimized || pending.has('open', id) || pending.has('close', id) || pending.has('minimize', id);
   });
 
   $effect.pre(() => {

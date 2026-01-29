@@ -146,36 +146,6 @@
   }
 }
 
-@keyframes modal-glow-minimum {
-  0%, 100% {
-    box-shadow: none;
-  }
-}
-@keyframes modal-glow-low {
-  0%, 100% {
-    box-shadow: 0 0 8px rgba(var(--modal-glow-color), 0.15), 0 0 16px rgba(var(--modal-glow-color), 0.1), 0 0 24px rgba(var(--modal-glow-color), 0.05);
-  }
-  50% {
-    box-shadow: 0 0 12px rgba(var(--modal-glow-color), 0.2), 0 0 24px rgba(var(--modal-glow-color), 0.15), 0 0 36px rgba(var(--modal-glow-color), 0.08);
-  }
-}
-@keyframes modal-glow-medium {
-  0%, 100% {
-    box-shadow: 0 0 20px rgba(var(--modal-glow-color), 0.6), 0 0 40px rgba(var(--modal-glow-color), 0.5), 0 0 60px rgba(var(--modal-glow-color), 0.4), 0 0 80px rgba(var(--modal-glow-color), 0.25);
-  }
-  50% {
-    box-shadow: 0 0 30px rgba(var(--modal-glow-color), 0.8), 0 0 60px rgba(var(--modal-glow-color), 0.6), 0 0 90px rgba(var(--modal-glow-color), 0.5), 0 0 120px rgba(var(--modal-glow-color), 0.35), 0 0 150px rgba(var(--modal-glow-color), 0.2);
-  }
-}
-@keyframes modal-glow-high {
-  0%, 100% {
-    box-shadow: 0 0 30px rgba(var(--modal-glow-color), 0.7), 0 0 60px rgba(var(--modal-glow-color), 0.6), 0 0 90px rgba(var(--modal-glow-color), 0.5), 0 0 120px rgba(var(--modal-glow-color), 0.4);
-  }
-  50% {
-    box-shadow: 0 0 50px rgba(var(--modal-glow-color), 0.9), 0 0 100px rgba(var(--modal-glow-color), 0.7), 0 0 150px rgba(var(--modal-glow-color), 0.6), 0 0 200px rgba(var(--modal-glow-color), 0.45), 0 0 250px rgba(var(--modal-glow-color), 0.3);
-  }
-}
-
 @keyframes modal-dock-glow-pulse {
   0%, 100% { opacity: 0.35; }
   50% { opacity: 0.65; }

@@ -1,6 +1,6 @@
 import type { ModalState, ModalId, Position } from '../types';
 import type { ModalLayoutInfo, ModalBounds } from '../utils/viewport';
-import { toDataId, getModalDialogElement } from '../utils/helpers';
+import { getModalDialogElement, toDataId } from '../utils/helpers';
 import {
   modals,
   dockOrder,
@@ -8,7 +8,7 @@ import {
   closingModals,
   getStateVersion,
   subscribe,
-} from './internal';
+} from './store';
 
 export { getStateVersion, subscribe };
 

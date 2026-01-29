@@ -5,6 +5,8 @@ import type {
   Dimensions,
   AnimationTransform,
 } from '../types';
+import { pending } from './pending-factory';
+import { _resetSymbolIds, SYMBOL_PREFIX } from '../utils/helpers';
 
 const SINGLETON_KEY = Symbol.for('epic-modals-core');
 type GlobalWithModals = typeof globalThis & { [key: symbol]: boolean };
@@ -39,6 +41,19 @@ export const modals: Map<ModalId, ModalState> = new Map();
 
 let stateVersion = 0;
 
+export let maxZIndex = 0;
+
+export function updateMaxZIndex(z: number): void {
+  if (z > maxZIndex) maxZIndex = z;
+}
+
+export function recalcMaxZIndex(): void {
+  maxZIndex = 0;
+  for (const m of modals.values()) {
+    if (m.zIndex > maxZIndex) maxZIndex = m.zIndex;
+  }
+}
+
 export let rearrangementTimeout: ReturnType<typeof setTimeout> | null = null;
 export function setRearrangementTimeout(timeout: ReturnType<typeof setTimeout> | null): void {
   rearrangementTimeout = timeout;
@@ -56,14 +71,6 @@ let pendingNotify = false;
 
 let isNotifying = false;
 
-export let pendingMinimize: ModalId[] = [];
-export let pendingOpen: ModalId[] = [];
-export let pendingClose: ModalId[] = [];
-export let pendingForceClose: ModalId[] = [];
-export let pendingRestore: ModalId[] = [];
-export let pendingChildRestore: ModalId[] = [];
-export let pendingMinimizeWithParent: ModalId[] = [];
-export let pendingAttention: ModalId[] = [];
 export let activeAttention: ModalId[] = [];
 
 export let pendingMinimizeTarget: AnimationTransform | null = null;
@@ -106,30 +113,6 @@ export function setRegistryCallbacksInternal(callbacks: RegistryCallbacks | null
   registryCallbacks = callbacks;
 }
 
-export function setPendingMinimize(arr: ModalId[]): void {
-  pendingMinimize = arr;
-}
-export function setPendingOpen(arr: ModalId[]): void {
-  pendingOpen = arr;
-}
-export function setPendingClose(arr: ModalId[]): void {
-  pendingClose = arr;
-}
-export function setPendingForceClose(arr: ModalId[]): void {
-  pendingForceClose = arr;
-}
-export function setPendingRestore(arr: ModalId[]): void {
-  pendingRestore = arr;
-}
-export function setPendingChildRestore(arr: ModalId[]): void {
-  pendingChildRestore = arr;
-}
-export function setPendingMinimizeWithParent(arr: ModalId[]): void {
-  pendingMinimizeWithParent = arr;
-}
-export function setPendingAttention(arr: ModalId[]): void {
-  pendingAttention = arr;
-}
 export function setActiveAttention(arr: ModalId[]): void {
   activeAttention = arr;
 }
@@ -212,16 +195,153 @@ export function warnIfUnregistered(id: ModalId, method: string): boolean {
   return true;
 }
 
+export function validateModalId(id: unknown, functionName: string): asserts id is ModalId {
+  if (id === undefined || id === null) {
+    throw new Error(
+      `${functionName}: Missing required 'id' parameter. ` +
+      `Expected a modal ID (string or symbol), got ${id === null ? 'null' : 'undefined'}.`
+    );
+  }
+  if (typeof id === 'symbol') return;
+  if (typeof id !== 'string') {
+    throw new Error(
+      `${functionName}: Invalid 'id' parameter. ` +
+      `Expected a string or symbol, got ${typeof id}.`
+    );
+  }
+  if (id.trim() === '') {
+    throw new Error(
+      `${functionName}: Invalid 'id' parameter. ` +
+      `Modal ID cannot be an empty string.`
+    );
+  }
+  if (id.startsWith(SYMBOL_PREFIX)) {
+    throw new Error(
+      `${functionName}: Invalid 'id' parameter. ` +
+      `String IDs cannot start with '${SYMBOL_PREFIX}' (reserved for symbol IDs).`
+    );
+  }
+}
+
+function isPosition(value: unknown): value is Position {
+  return (
+    typeof value === 'object' &&
+    value !== null &&
+    'x' in value &&
+    'y' in value &&
+    typeof (value as Position).x === 'number' &&
+    typeof (value as Position).y === 'number'
+  );
+}
+
+export function validateSource(
+  source: unknown,
+  functionName: string
+): asserts source is HTMLElement | Position {
+  if (source === undefined || source === null) {
+    throw new Error(
+      `${functionName}: Missing required 'source' parameter. ` +
+      `Expected an HTMLElement (the button that triggered the modal) or a Position object {x, y}. ` +
+      `Example: openModal('my-modal', event.currentTarget) or openModal('my-modal', {x: 100, y: 100})`
+    );
+  }
+
+  if (typeof HTMLElement !== 'undefined' && source instanceof HTMLElement) {
+    return;
+  }
+
+  if (isPosition(source)) {
+    return;
+  }
+
+  const typeDesc = typeof source === 'object'
+    ? `object (keys: ${Object.keys(source as object).join(', ') || 'none'})`
+    : typeof source;
+
+  throw new Error(
+    `${functionName}: Invalid 'source' parameter. ` +
+    `Expected an HTMLElement or Position object {x: number, y: number}, got ${typeDesc}. ` +
+    `The source is used to animate the modal opening from the trigger element's position.`
+  );
+}
+
+export function validateParentId(
+  parentId: unknown,
+  functionName: string
+): asserts parentId is ModalId {
+  if (parentId === undefined || parentId === null) {
+    throw new Error(
+      `${functionName}: Missing required 'parentId' parameter. ` +
+      `Expected the ID of the parent modal that this child should be linked to.`
+    );
+  }
+  if (typeof parentId === 'symbol') return;
+  if (typeof parentId !== 'string') {
+    throw new Error(
+      `${functionName}: Invalid 'parentId' parameter. ` +
+      `Expected a string or symbol, got ${typeof parentId}.`
+    );
+  }
+  if (parentId.trim() === '') {
+    throw new Error(
+      `${functionName}: Invalid 'parentId' parameter. ` +
+      `Parent modal ID cannot be an empty string.`
+    );
+  }
+}
+
+export type EventCallback<T = void> = (data: T) => void;
+
+export function createEventEmitter<T>() {
+
+  const listeners = new Map<keyof T, Set<EventCallback<any>>>();
+
+  return {
+
+    on<K extends keyof T>(event: K, callback: EventCallback<T[K]>): () => void {
+      let set = listeners.get(event);
+      if (!set) {
+        set = new Set();
+        listeners.set(event, set);
+      }
+      set.add(callback);
+
+      return () => {
+        set?.delete(callback);
+        if (set?.size === 0) {
+          listeners.delete(event);
+        }
+      };
+    },
+
+    emit<K extends keyof T>(event: K, data: T[K]): void {
+      const set = listeners.get(event);
+      if (set) {
+        set.forEach((callback) => callback(data));
+      }
+    },
+
+    off<K extends keyof T>(event?: K): void {
+      if (event) {
+        listeners.delete(event);
+      } else {
+        listeners.clear();
+      }
+    },
+
+    listenerCount<K extends keyof T>(event: K): number {
+      return listeners.get(event)?.size ?? 0;
+    },
+  };
+}
+
+export type EventEmitter<T> = ReturnType<typeof createEventEmitter<T>>;
+
 export function _resetInternalState(): void {
   modals.clear();
-  pendingMinimize = [];
-  pendingOpen = [];
-  pendingClose = [];
-  pendingForceClose = [];
-  pendingRestore = [];
-  pendingChildRestore = [];
-  pendingMinimizeWithParent = [];
-  pendingAttention = [];
+  maxZIndex = 0;
+  _resetSymbolIds();
+  pending.reset();
   activeAttention = [];
   pendingMinimizeTarget = null;
   openSourcePositions.clear();
@@ -247,10 +367,7 @@ export function _resetInternalState(): void {
 export function _getInternalState() {
   return {
     modals,
-    pendingMinimize,
-    pendingOpen,
-    pendingClose,
-    pendingRestore,
+    pending,
     dockOrder,
     animatingModals,
     transparentModals,

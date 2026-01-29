@@ -45,8 +45,8 @@ export {
 } from './state';
 
 export {
-  CSS_CLASSES,
-  DATA_ATTRIBUTES,
+  CSS,
+  DATA_ATTRS,
 } from './utils';
 
 export {

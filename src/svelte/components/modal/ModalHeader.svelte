@@ -2,7 +2,7 @@
   import type { Snippet } from 'svelte';
   import type { ModalHeaderBaseProps } from '../../../core/types';
   import { RENDER_ICON_CONTEXT } from '../../context';
-  import { CSS_CLASSES } from '../../../core/utils/constants';
+  import { CSS } from '../../../core/utils/constants';
 
   interface Props extends ModalHeaderBaseProps {
 
@@ -58,24 +58,24 @@
 </script>
 
 <header
-  class={CSS_CLASSES.header}
+  class={CSS.header}
   class:modal-header-draggable={!!onStartDrag}
   class:transparent={isTransparent}
   onpointerdown={handleDragStart}
 >
   {#if isMac}
 
-    <div class={CSS_CLASSES.headerTrafficLights}>
+    <div class={CSS.headerTrafficLights}>
       <button
         type="button"
-        class="{CSS_CLASSES.headerLight} {CSS_CLASSES.headerLightClose}"
+        class="{CSS.headerLight} {CSS.headerLightClose}"
         onclick={onClose}
         aria-label="Close"
       ></button>
       {#if minimizable}
       <button
         type="button"
-        class="{CSS_CLASSES.headerLight} {CSS_CLASSES.headerLightMinimize}"
+        class="{CSS.headerLight} {CSS.headerLightMinimize}"
         class:modal-header-light-disabled={minimizeDisabled}
         onclick={minimizeDisabled ? undefined : onMinimize}
         disabled={minimizeDisabled}
@@ -86,61 +86,61 @@
       {#if transparencyEnabled}
       <button
         type="button"
-        class="{CSS_CLASSES.headerLight} {CSS_CLASSES.headerLightStyle}"
+        class="{CSS.headerLight} {CSS.headerLightStyle}"
         onclick={onToggleStyle}
         aria-label="Toggle style"
       ></button>
       {/if}
     </div>
 
-    <div class={CSS_CLASSES.headerMacCenter}>
+    <div class={CSS.headerMacCenter}>
       {#if customIcon}
-        <div class={CSS_CLASSES.headerIcon}>
+        <div class={CSS.headerIcon}>
           {@render customIcon()}
         </div>
       {:else if iconElement}
-        <div class={CSS_CLASSES.headerIcon} use:insertIconElement></div>
+        <div class={CSS.headerIcon} use:insertIconElement></div>
       {:else if icon && renderIcon}
-        <div class={CSS_CLASSES.headerIcon}>
+        <div class={CSS.headerIcon}>
           {@render renderIcon(icon)}
         </div>
       {/if}
-      <div class={CSS_CLASSES.headerTitleGroup}>
+      <div class={CSS.headerTitleGroup}>
         {#if titleId}
-          <h2 id={titleId} class={CSS_CLASSES.headerTitle}>{title}</h2>
+          <h2 id={titleId} class={CSS.headerTitle}>{title}</h2>
         {:else}
-          <h2 class={CSS_CLASSES.headerTitle}>{title}</h2>
+          <h2 class={CSS.headerTitle}>{title}</h2>
         {/if}
       </div>
     </div>
 
-    <div class={CSS_CLASSES.headerMacSpacer}></div>
+    <div class={CSS.headerMacSpacer}></div>
   {:else}
 
-    <div class={CSS_CLASSES.headerTitleGroup}>
+    <div class={CSS.headerTitleGroup}>
       {#if customIcon}
-        <div class={CSS_CLASSES.headerIcon}>
+        <div class={CSS.headerIcon}>
           {@render customIcon()}
         </div>
       {:else if iconElement}
-        <div class={CSS_CLASSES.headerIcon} use:insertIconElement></div>
+        <div class={CSS.headerIcon} use:insertIconElement></div>
       {:else if icon && renderIcon}
-        <div class={CSS_CLASSES.headerIcon}>
+        <div class={CSS.headerIcon}>
           {@render renderIcon(icon)}
         </div>
       {/if}
       {#if titleId}
-        <h2 id={titleId} class={CSS_CLASSES.headerTitle}>{title}</h2>
+        <h2 id={titleId} class={CSS.headerTitle}>{title}</h2>
       {:else}
-        <h2 class={CSS_CLASSES.headerTitle}>{title}</h2>
+        <h2 class={CSS.headerTitle}>{title}</h2>
       {/if}
     </div>
 
-    <div class={CSS_CLASSES.headerActions}>
+    <div class={CSS.headerActions}>
       {#if transparencyEnabled}
       <button
         type="button"
-        class="{CSS_CLASSES.headerBtnWindows} {CSS_CLASSES.headerBtnWindowsStyle}"
+        class="{CSS.headerBtnWindows} {CSS.headerBtnWindowsStyle}"
         onclick={onToggleStyle}
         aria-label="Toggle style"
       >&#9671;</button>
@@ -148,7 +148,7 @@
       {#if minimizable}
       <button
         type="button"
-        class={CSS_CLASSES.headerBtnWindows}
+        class={CSS.headerBtnWindows}
         class:modal-header-btn-windows-disabled={minimizeDisabled}
         onclick={minimizeDisabled ? undefined : onMinimize}
         disabled={minimizeDisabled}
@@ -158,7 +158,7 @@
       {/if}
       <button
         type="button"
-        class="{CSS_CLASSES.headerBtnWindows} {CSS_CLASSES.headerBtnWindowsClose}"
+        class="{CSS.headerBtnWindows} {CSS.headerBtnWindowsClose}"
         onclick={onClose}
         aria-label="Close"
       >&times;</button>

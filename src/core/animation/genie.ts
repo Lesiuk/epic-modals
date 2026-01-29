@@ -1,4 +1,5 @@
-import type { Position, Dimensions, AnimationTransform } from '../types';
+import type { ModalId, Position, Dimensions, AnimationTransform } from '../types';
+import { toDataId } from '../utils/helpers';
 
 export function calculateMinimizeTransform(
   modalPosition: Position,
@@ -67,9 +68,9 @@ export function getDefaultDockTarget(): Position {
   };
 }
 
-export function getDockItemPosition(modalId: string, fallback?: Position): Position {
+export function getDockItemPosition(modalId: ModalId, fallback?: Position): Position {
 
-  const dockItem = document.querySelector(`.modal-dock-item[data-modal-id="${modalId}"]`);
+  const dockItem = document.querySelector(`.modal-dock-item[data-modal-id="${toDataId(modalId)}"]`);
   if (dockItem) {
     const rect = dockItem.getBoundingClientRect();
     return {

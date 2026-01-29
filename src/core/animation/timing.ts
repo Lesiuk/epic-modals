@@ -26,29 +26,3 @@ export const EASINGS = {
 } as const;
 
 export type AnimationType = 'open' | 'close' | 'minimize' | 'restore' | 'attention' | 'none';
-
-export function getDuration(type: AnimationType): number {
-  switch (type) {
-    case 'open': return DURATIONS.open;
-    case 'close': return DURATIONS.close;
-    case 'minimize': return DURATIONS.minimize;
-    case 'restore': return DURATIONS.restore;
-    case 'attention': return DURATIONS.attention;
-    default: return 0;
-  }
-}
-
-export function getEasing(type: AnimationType): string {
-  switch (type) {
-    case 'open':
-    case 'restore':
-      return EASINGS.easeOut;
-    case 'close':
-    case 'minimize':
-      return EASINGS.easeOutCubic;
-    case 'attention':
-      return EASINGS.easeInOut;
-    default:
-      return EASINGS.linear;
-  }
-}

@@ -10,14 +10,14 @@ export {
   type URLStateCallbacks,
   type RegistryCallbacks,
   type DockPositionGetter,
-} from './internal';
+} from './store';
 
 export {
   registerModal,
   unregisterModal,
   createModalRegistration,
   type CreateModalRegistrationProps,
-} from './registration';
+} from './operations';
 
 export {
   minimizeModal,
@@ -28,13 +28,13 @@ export {
   finalizeChildMinimize,
   hideChildWithParent,
   clearPendingParentAnimation,
-} from './minimize';
+} from './operations';
 
 export {
   bringToFront,
   isTopModal,
   reorderDock,
-} from './zindex';
+} from './position';
 
 export {
   updateModalPosition,
@@ -52,35 +52,10 @@ export {
   finalizeModalClose,
   getModalsToClose,
   type OpenModalOptions,
-} from './open-close';
+} from './operations';
 
-export {
-  hasPendingMinimize,
-  consumePendingMinimize,
-  hasPendingMinimizeWithParent,
-  consumePendingMinimizeWithParent,
-  hasPendingOpen,
-  consumePendingOpen,
-  hasPendingClose,
-  consumePendingClose,
-  hasPendingForceClose,
-  consumePendingForceClose,
-  hasPendingRestore,
-  consumePendingRestore,
-  hasPendingChildRestore,
-  consumePendingChildRestore,
-  hasPendingAttention,
-  consumePendingAttention,
-  clearActiveAttention,
-  hasPendingParentLinkFor,
-  hasPendingParentAnimation,
-  consumePendingParentAnimation,
-  storeOpenSourcePosition,
-  getOpenSourcePosition,
-  consumeOpenSourcePosition,
-  consumePendingMinimizeTarget,
-  consumePendingParentLink,
-} from './pending';
+export { pending } from './pending-factory';
+export type { PendingType, PendingStateManager } from './pending-factory';
 
 export {
   getModalState,
@@ -103,18 +78,23 @@ export {
   shakeElement,
   triggerRejection,
   resetModalTransparency,
-  startAttentionAnimation,
-  endAttentionAnimation,
-} from './effects';
+} from './operations';
 
 export {
   triggerRearrangement,
   applyLayoutPositions,
-  animateModalsToPositions,
   handleWindowResize,
   initializeResizeListener,
   cleanupResizeListener,
 } from './layout';
+
+export {
+  forEachDescendant,
+  findRootParent,
+  getAncestors,
+  getHierarchyDepth,
+  type ForEachDescendantOptions,
+} from './hierarchy';
 
 export {
   linkModals,
@@ -124,9 +104,24 @@ export {
   calculateChildCenterPosition,
 } from './parent-child';
 
-export * from './stacking';
+export {
+  initializeStacking,
+  acquireModalZIndex,
+  getLayerZIndex,
+  resetStacking,
+} from './parent-child';
 
-export * from './events';
+export {
+  createEventEmitter,
+  type EventCallback,
+  type EventEmitter,
+} from './store';
 
-export { setURLCallbacks as setURLStateCallbacks } from './internal';
-export { setRegistryCallbacksInternal as setRegistryFunctions } from './internal';
+export {
+  validateModalId,
+  validateSource,
+  validateParentId,
+} from './store';
+
+export { setURLCallbacks as setURLStateCallbacks } from './store';
+export { setRegistryCallbacksInternal as setRegistryFunctions } from './store';

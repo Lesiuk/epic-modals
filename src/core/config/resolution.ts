@@ -11,6 +11,34 @@ import type {
 import { getConfig, mergeConfig, normalizeBackdropConfig } from './defaults';
 import type { ModalConfigOverrides } from '../types';
 
+type ConfigSection = 'features' | 'appearance' | 'animations' | 'positioning' | 'parentChild';
+
+function resolve<S extends ConfigSection, K extends keyof ModalLibraryConfig[S]>(
+  section: S,
+  key: K,
+  modalConfig: ModalConfigOverrides | undefined,
+  providerConfig: PartialModalLibraryConfig | undefined
+): ModalLibraryConfig[S][K] {
+
+  const modalSection = modalConfig?.[section as keyof ModalConfigOverrides];
+  if (modalSection && key in modalSection) {
+    const value = (modalSection as Record<string, unknown>)[key as string];
+    if (value !== undefined) {
+      return value as ModalLibraryConfig[S][K];
+    }
+  }
+
+  const providerSection = providerConfig?.[section];
+  if (providerSection && key in providerSection) {
+    const value = (providerSection as Record<string, unknown>)[key as string];
+    if (value !== undefined) {
+      return value as ModalLibraryConfig[S][K];
+    }
+  }
+
+  return getConfig()[section][key];
+}
+
 export interface ConfigResolverOptions {
 
   getModalConfig: () => ModalConfigOverrides | undefined;
@@ -88,72 +116,16 @@ export function createConfigResolver(options: ConfigResolverOptions): ConfigReso
     return toBoolean(globalValue) ?? false;
   }
 
-  function getAppearance<K extends keyof AppearanceConfig>(key: K): AppearanceConfig[K] {
-    const modalConfig = getModalConfig();
-    const providerConfig = getProviderConfig();
-
-    if (modalConfig?.appearance?.[key] !== undefined) {
-      return modalConfig.appearance[key] as AppearanceConfig[K];
-    }
-
-    if (providerConfig?.appearance?.[key] !== undefined) {
-      return providerConfig.appearance[key] as AppearanceConfig[K];
-    }
-
-    return getConfig().appearance[key];
-  }
-
-  function getAnimation<K extends keyof AnimationDurations>(key: K): AnimationDurations[K] {
-    const modalConfig = getModalConfig();
-    const providerConfig = getProviderConfig();
-
-    if (modalConfig?.animations?.[key] !== undefined) {
-      return modalConfig.animations[key] as AnimationDurations[K];
-    }
-
-    if (providerConfig?.animations?.[key] !== undefined) {
-      return providerConfig.animations[key] as AnimationDurations[K];
-    }
-
-    return getConfig().animations[key];
-  }
-
-  function getPositioning<K extends keyof PositioningConfig>(key: K): PositioningConfig[K] {
-    const modalConfig = getModalConfig();
-    const providerConfig = getProviderConfig();
-
-    if (modalConfig?.positioning?.[key] !== undefined) {
-      return modalConfig.positioning[key] as PositioningConfig[K];
-    }
-
-    if (providerConfig?.positioning?.[key] !== undefined) {
-      return providerConfig.positioning[key] as PositioningConfig[K];
-    }
-
-    return getConfig().positioning[key];
-  }
-
-  function getParentChild<K extends keyof ParentChildConfig>(key: K): ParentChildConfig[K] {
-    const modalConfig = getModalConfig();
-    const providerConfig = getProviderConfig();
-
-    if (modalConfig?.parentChild?.[key] !== undefined) {
-      return modalConfig.parentChild[key] as ParentChildConfig[K];
-    }
-
-    if (providerConfig?.parentChild?.[key] !== undefined) {
-      return providerConfig.parentChild[key] as ParentChildConfig[K];
-    }
-
-    return getConfig().parentChild[key];
-  }
-
   return {
     getEffectiveConfig,
     isFeatureEnabled,
-    getAppearance,
-    getAnimation,
-    getPositioning,
-    getParentChild,
+    getAppearance: <K extends keyof AppearanceConfig>(key: K) =>
+      resolve('appearance', key, getModalConfig(), getProviderConfig()),
+    getAnimation: <K extends keyof AnimationDurations>(key: K) =>
+      resolve('animations', key, getModalConfig(), getProviderConfig()),
+    getPositioning: <K extends keyof PositioningConfig>(key: K) =>
+      resolve('positioning', key, getModalConfig(), getProviderConfig()),
+    getParentChild: <K extends keyof ParentChildConfig>(key: K) =>
+      resolve('parentChild', key, getModalConfig(), getProviderConfig()),
   };
 }

@@ -2,13 +2,13 @@
   import { cubicOut, backOut } from 'svelte/easing';
   import { getContext } from 'svelte';
   import type { Snippet } from 'svelte';
-  import { restoreModal } from '../../../core/state/minimize';
+  import { restoreModal } from '../../../core/state/operations';
   import {
     getModalsStore,
     isModalAnimating,
     shakeElement,
   } from '../../../core/state';
-  import { getLayerZIndex } from '../../../core/state/stacking';
+  import { getLayerZIndex } from '../../../core/state/parent-child';
   import { getConfig } from '../../../core/config';
   import { getReactiveStateVersion, getReactiveConfigVersion } from '../../stores.svelte';
   import {
@@ -16,11 +16,11 @@
     calculateDockDragPosition,
     constrainDockPosition,
   } from '../../../core/utils/dock';
-  import { toDataId } from '../../../core/utils';
   import Portal from '../Portal.svelte';
   import { useWindowEvent } from '../../hooks';
   import { RENDER_ICON_CONTEXT } from '../../context';
-  import { CSS_CLASSES, DATA_ATTRIBUTES } from '../../../core/utils/constants';
+  import { CSS, DATA_ATTRS } from '../../../core/utils/constants';
+  import { toDataId } from '../../../core/utils/helpers';
 
   type IconSnippet = Snippet<[icon: string]>;
 
@@ -136,7 +136,7 @@
 <Portal target={config.portalTarget}>
   <div
     bind:this={dockContainerEl}
-    class={CSS_CLASSES.dockContainer}
+    class={CSS.dockContainer}
     class:modal-dock-left={dockPosition === 'left'}
     class:modal-dock-right={dockPosition === 'right'}
     class:modal-dock-bottom={dockPosition === 'bottom'}
@@ -148,14 +148,14 @@
     transition:fly={minimizedModals.length > 0 ? flyParams : { duration: 0 }}
     >
       <div
-        class={CSS_CLASSES.dock}
+        class={CSS.dock}
         class:modal-dock-free-horizontal={dockPosition === 'free' && dockOrientation === 'horizontal'}
         class:modal-dock-free-vertical={dockPosition === 'free' && dockOrientation === 'vertical'}
       >
         {#if dockPosition === 'free'}
           <button
             type="button"
-            class={CSS_CLASSES.dockHandle}
+            class={CSS.dockHandle}
             class:modal-dock-handle-dragging={isDockDragging}
             onpointerdown={startDockDrag}
             aria-label="Drag dock"
@@ -165,12 +165,12 @@
         {#each minimizedModals as modal, i (modal.id)}
           {@const childModal = modal.lastChildId ? modalsStore.get(modal.lastChildId) : null}
           <button
-            class={CSS_CLASSES.dockItem}
+            class={CSS.dockItem}
             class:modal-dock-item-has-glow={!!modal.glow}
             class:modal-dock-item-has-child={!!modal.lastChildId}
             class:modal-dock-item-label-beside={dockLabelMode === 'beside'}
             class:modal-dock-item-label-below={dockLabelMode === 'below'}
-            {...{[DATA_ATTRIBUTES.modalId]: toDataId(modal.id)}}
+            {...{[DATA_ATTRS.modalId]: toDataId(modal.id)}}
             aria-label="Restore {modal.title}"
             onclick={(e) => {
               if (isModalAnimating(modal.id)) {
@@ -182,19 +182,19 @@
             transition:scale={{ duration: 300, delay: i * 50, easing: backOut, start: 0.5 }}
             style={modal.glow ? `--modal-dock-glow-color: ${modal.glow.color};` : ''}
           >
-            <span class={CSS_CLASSES.dockItemIcon}>
+            <span class={CSS.dockItemIcon}>
               {#if modal.icon && renderIcon}
                 {@render renderIcon(modal.icon)}
               {:else}
-                <span class={CSS_CLASSES.dockItemIconPlaceholder}>{modal.title.charAt(0)}</span>
+                <span class={CSS.dockItemIconPlaceholder}>{modal.title.charAt(0)}</span>
               {/if}
             </span>
             {#if dockLabelMode !== 'hidden'}
-              <span class={CSS_CLASSES.dockItemLabel}>{modal.title}</span>
+              <span class={CSS.dockItemLabel}>{modal.title}</span>
             {/if}
-            <span class={CSS_CLASSES.dockItemGlow}></span>
+            <span class={CSS.dockItemGlow}></span>
             {#if modal.lastChildId && childModal}
-              <span class={CSS_CLASSES.dockChildIndicator}>
+              <span class={CSS.dockChildIndicator}>
                 {#if childModal.icon && renderIcon}
                   {@render renderIcon(childModal.icon)}
                 {:else}

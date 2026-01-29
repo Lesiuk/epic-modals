@@ -3,10 +3,10 @@
   import type { BaseModalProps, ExternalElementProps } from '../../../core/types';
   import { MODAL_ID_CONTEXT } from '../../context';
   import { ModalController, type ComputedModalState } from '../../../core/modal';
-  import { toDataId } from '../../../core/utils';
   import { bringToFront } from '../../../core/state';
   import { getReactiveConfigVersion } from '../../stores.svelte';
-  import { CSS_CLASSES, DATA_ATTRIBUTES } from '../../../core/utils/constants';
+  import { CSS, DATA_ATTRS } from '../../../core/utils/constants';
+  import { toDataId } from '../../../core/utils/helpers';
 
   import Portal from '../Portal.svelte';
   import ModalHeader from './ModalHeader.svelte';
@@ -187,7 +187,7 @@
     <div
       bind:this={modalEl}
       class={computedState.cssClasses.join(' ')}
-      {...{[DATA_ATTRIBUTES.modalId]: dataId}}
+      {...{[DATA_ATTRS.modalId]: dataId}}
       data-state={computedState.dataState}
       data-animation-phase={computedState.dataAnimationPhase}
       style={modalStyle}
@@ -222,12 +222,12 @@
         transparencyEnabled={transparencyEnabled}
       />
 
-      <div class={CSS_CLASSES.body} use:appendElement={bodyElement}>
+      <div class={CSS.body} use:appendElement={bodyElement}>
         {@render children?.()}
       </div>
 
       {#if footer || footerElement}
-        <div class={CSS_CLASSES.footer} use:appendElement={footerElement}>
+        <div class={CSS.footer} use:appendElement={footerElement}>
           {#if footer}
             {@render footer()}
           {/if}
@@ -237,7 +237,7 @@
       <ResizeHandles onStartResize={resizable && !computedState.hasChild ? handleResizeStart : undefined} />
 
       {#if showOverlay}
-        <div class={CSS_CLASSES.childOverlay} class:modal-overlay-closing={overlayClosing}></div>
+        <div class={CSS.childOverlay} class:modal-overlay-closing={overlayClosing}></div>
       {/if}
     </div>
   </Portal>

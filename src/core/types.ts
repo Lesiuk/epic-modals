@@ -1,4 +1,4 @@
-export type ModalId = string;
+export type ModalId = string | symbol;
 
 export interface Position {
 

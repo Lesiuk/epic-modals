@@ -1,7 +1,7 @@
 import type { ModalId, Position, Dimensions } from '../types';
 import type { DragBehavior } from '../behaviors/drag';
 import type { PositioningConfig } from '../config';
-import { toDataId, getModalDialogElement } from '../utils/helpers';
+import { getModalDialogElement } from '../utils/helpers';
 import { whenHasDimensions } from '../utils/dom';
 import {
   getModalState,

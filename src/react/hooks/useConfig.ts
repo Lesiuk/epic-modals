@@ -8,7 +8,7 @@ import type {
   ParentChildConfig,
   PartialModalLibraryConfig,
 } from '../../core/config';
-import { getConfigVersion } from '../../core/config';
+import { getConfigVersion, subscribeToConfig } from '../../core/config';
 import { createConfigResolver } from '../../core/config/resolution';
 import type { ModalConfigOverrides } from '../../core/types';
 import { ModalProviderConfigContext } from '../context';
@@ -43,15 +43,10 @@ export function useModalConfig(options: UseModalConfigOptions = {}): UseModalCon
   const [configVersion, setConfigVersion] = useState(() => getConfigVersion());
 
   useEffect(() => {
-    const checkConfigVersion = () => {
-      const currentVersion = getConfigVersion();
-      if (currentVersion !== configVersion) {
-        setConfigVersion(currentVersion);
-      }
-    };
-    const interval = setInterval(checkConfigVersion, 50);
-    return () => clearInterval(interval);
-  }, [configVersion]);
+    return subscribeToConfig(() => {
+      setConfigVersion(getConfigVersion());
+    });
+  }, []);
 
   return useMemo(() => {
     const resolver = createConfigResolver({

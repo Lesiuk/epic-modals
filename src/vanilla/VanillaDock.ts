@@ -1,9 +1,9 @@
-import { restoreModal } from '../core/state/minimize';
+import { restoreModal } from '../core/state/operations';
 import { subscribe, getModalsStore, isModalAnimating, shakeElement } from '../core/state';
 import { getConfig } from '../core/config';
 import { getMinimizedModals, getDockContainerClasses, getDockClasses } from '../core/utils/dock';
-import { getLayerZIndex } from '../core/state/stacking';
-import { CSS_CLASSES, DATA_ATTRIBUTES } from '../core/utils/constants';
+import { getLayerZIndex } from '../core/state/parent-child';
+import { CSS, DATA_ATTRS } from '../core/utils/constants';
 import { toDataId } from '../core/utils/helpers';
 import type { ModalState } from '../core/types';
 
@@ -44,7 +44,7 @@ export class VanillaDock {
 
   private createDockDOM(): HTMLElement {
     const dock = document.createElement('div');
-    dock.className = CSS_CLASSES.dock;
+    dock.className = CSS.dock;
     return dock;
   }
 
@@ -100,7 +100,7 @@ export class VanillaDock {
   private createDockHandle(): HTMLElement {
     const handle = document.createElement('button');
     handle.type = 'button';
-    handle.className = CSS_CLASSES.dockHandle;
+    handle.className = CSS.dockHandle;
     handle.setAttribute('aria-label', 'Drag dock');
     return handle;
   }
@@ -113,15 +113,15 @@ export class VanillaDock {
     const item = document.createElement('button');
 
     const classNames = [
-      CSS_CLASSES.dockItem,
-      modal.glow && CSS_CLASSES.dockItemHasGlow,
-      modal.lastChildId && CSS_CLASSES.dockItemHasChild,
-      labelMode === 'beside' && CSS_CLASSES.dockItemLabelBeside,
-      labelMode === 'below' && CSS_CLASSES.dockItemLabelBelow,
+      CSS.dockItem,
+      modal.glow && CSS.dockItemHasGlow,
+      modal.lastChildId && CSS.dockItemHasChild,
+      labelMode === 'beside' && CSS.dockItemLabelBeside,
+      labelMode === 'below' && CSS.dockItemLabelBelow,
     ].filter(Boolean).join(' ');
 
     item.className = classNames;
-    item.setAttribute(DATA_ATTRIBUTES.modalId, toDataId(modal.id));
+    item.setAttribute(DATA_ATTRS.modalId, toDataId(modal.id));
     item.setAttribute('aria-label', `Restore ${modal.title}`);
 
     if (modal.glow) {
@@ -129,7 +129,7 @@ export class VanillaDock {
     }
 
     const iconSpan = document.createElement('span');
-    iconSpan.className = CSS_CLASSES.dockItemIcon;
+    iconSpan.className = CSS.dockItemIcon;
 
     if (modal.icon && this.options.renderIcon) {
       const iconEl = this.options.renderIcon(modal.icon);
@@ -145,18 +145,18 @@ export class VanillaDock {
 
     if (labelMode !== 'hidden') {
       const labelSpan = document.createElement('span');
-      labelSpan.className = CSS_CLASSES.dockItemLabel;
+      labelSpan.className = CSS.dockItemLabel;
       labelSpan.textContent = modal.title;
       item.appendChild(labelSpan);
     }
 
     const glowSpan = document.createElement('span');
-    glowSpan.className = CSS_CLASSES.dockItemGlow;
+    glowSpan.className = CSS.dockItemGlow;
     item.appendChild(glowSpan);
 
     if (modal.lastChildId && childModal) {
       const childIndicator = document.createElement('span');
-      childIndicator.className = CSS_CLASSES.dockChildIndicator;
+      childIndicator.className = CSS.dockChildIndicator;
 
       if (childModal.icon && this.options.renderIcon) {
         const childIconEl = this.options.renderIcon(childModal.icon);
@@ -184,7 +184,7 @@ export class VanillaDock {
 
   private createIconPlaceholder(title: string): HTMLElement {
     const placeholder = document.createElement('span');
-    placeholder.className = CSS_CLASSES.dockItemIconPlaceholder;
+    placeholder.className = CSS.dockItemIconPlaceholder;
     placeholder.textContent = title.charAt(0);
     return placeholder;
   }

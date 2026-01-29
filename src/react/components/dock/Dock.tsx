@@ -3,8 +3,9 @@ import {
   getModalsStore,
   subscribe,
 } from '../../../core/state';
-import { getLayerZIndex } from '../../../core/state/stacking';
+import { getLayerZIndex } from '../../../core/state/parent-child';
 import { CSS } from '../../../core/utils/constants';
+import { toDataId } from '../../../core/utils/helpers';
 import { getConfig, getConfigVersion } from '../../../core/config';
 import {
   getMinimizedModals,
@@ -149,7 +150,7 @@ export function Dock({ renderIcon: renderIconProp }: DockProps) {
             const childModal = modal.lastChildId ? modalsStore.get(modal.lastChildId) : null;
             return (
               <DockItem
-                key={String(modal.id)}
+                key={toDataId(modal.id)}
                 modal={modal}
                 childModal={childModal}
                 labelMode={dockLabelMode}

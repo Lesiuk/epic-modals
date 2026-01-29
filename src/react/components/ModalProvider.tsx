@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, type ReactNode } from 'react';
 import type { ModalLibraryConfig } from '../../core/config';
 import { getConfig } from '../../core/config';
-import { initializeStacking, resetStacking } from '../../core/state/stacking';
+import { initializeStacking, resetStacking } from '../../core/state/parent-child';
 import { initializeResizeListener, cleanupResizeListener } from '../../core/state/layout';
 import { ModalProviderConfigContext } from '../context';
 import { Backdrop } from './Backdrop';

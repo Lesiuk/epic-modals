@@ -11,7 +11,7 @@ import {
   resizeTimeout,
   setResizeTimeout,
   incrementVersion,
-} from './internal';
+} from './store';
 import { getModalLayoutInfos } from './getters';
 import { clearPositionAnimation } from './position';
 
@@ -40,15 +40,20 @@ export function triggerRearrangement(newModal: { id: string; width: number; heig
   }, 50));
 }
 
-export function applyLayoutPositions(positions: Map<string, Position>): void {
+export function applyLayoutPositions(
+  positions: Map<string, Position>,
+  options?: { updateSizes?: boolean },
+): void {
   if (positions.size === 0) return;
+
+  const updateSizes = options?.updateSizes ?? true;
 
   const animationTargets: Array<{
     id: ModalId;
     element: HTMLElement | null;
     oldPosition: Position;
     newPosition: Position;
-    size: { width: number; height: number };
+    size?: { width: number; height: number };
   }> = [];
 
   const elementData = new Map<ModalId, { element: HTMLElement | null; rect: DOMRect | null }>();
@@ -70,14 +75,18 @@ export function applyLayoutPositions(positions: Map<string, Position>): void {
       y: rect.top,
     } : { x: 0, y: 0 });
 
-    const size = modal.size ?? (rect ? {
-      width: rect.width,
-      height: rect.height,
-    } : { width: 0, height: 0 });
+    if (updateSizes) {
+      const size = modal.size ?? (rect ? {
+        width: rect.width,
+        height: rect.height,
+      } : { width: 0, height: 0 });
 
-    animationTargets.push({ id, element, oldPosition, newPosition, size });
+      animationTargets.push({ id, element, oldPosition, newPosition, size });
 
-    collectChildAnimationTargets(id, oldPosition, newPosition, animationTargets);
+      collectChildAnimationTargets(id, oldPosition, newPosition, animationTargets);
+    } else {
+      animationTargets.push({ id, element, oldPosition, newPosition });
+    }
   }
 
   for (const { id, newPosition, size } of animationTargets) {
@@ -87,7 +96,7 @@ export function applyLayoutPositions(positions: Map<string, Position>): void {
     modals.set(id, {
       ...modal,
       position: newPosition,
-      size,
+      ...(size !== undefined && { size }),
       hasBeenDragged: true,
       isAnimatingPosition: true,
     });
@@ -175,63 +184,4 @@ export function cleanupResizeListener(): void {
 
   window.removeEventListener('resize', handleWindowResize);
   resizeListenerInitialized = false;
-}
-
-export function animateModalsToPositions(moves: Map<string, Position>): void {
-  if (moves.size === 0) return;
-
-  const animationTargets: Array<{
-    id: ModalId;
-    element: HTMLElement | null;
-    oldPosition: Position;
-    newPosition: Position;
-  }> = [];
-
-  const elementData = new Map<ModalId, { element: HTMLElement | null; rect: DOMRect | null }>();
-  for (const [id] of moves) {
-    const element = getModalDialogElement(id);
-
-    const rect = element ? element.getBoundingClientRect() : null;
-    elementData.set(id, { element, rect });
-  }
-
-  for (const [id, newPosition] of moves) {
-    const modal = modals.get(id);
-    if (!modal) continue;
-
-    const { element, rect } = elementData.get(id) || { element: null, rect: null };
-
-    const oldPosition = modal.position ?? (rect ? {
-      x: rect.left,
-      y: rect.top,
-    } : { x: 0, y: 0 });
-
-    animationTargets.push({ id, element, oldPosition, newPosition });
-  }
-
-  for (const { id, newPosition } of animationTargets) {
-    const modal = modals.get(id);
-    if (!modal) continue;
-
-    modals.set(id, {
-      ...modal,
-      position: newPosition,
-      hasBeenDragged: true,
-      isAnimatingPosition: true,
-    });
-  }
-
-  incrementVersion();
-
-  for (const { id, element, oldPosition, newPosition } of animationTargets) {
-    if (element) {
-      flipAnimate(element, oldPosition, newPosition, {
-        duration: DURATIONS.parentMove,
-        onComplete: () => clearPositionAnimation(id),
-      });
-    } else {
-
-      setTimeout(() => clearPositionAnimation(id), DURATIONS.parentMove + TIMEOUT_SAFETY_MARGIN);
-    }
-  }
 }

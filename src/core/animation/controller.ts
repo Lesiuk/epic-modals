@@ -1,5 +1,5 @@
 import type { Position, Dimensions, AnimationTransform } from '../types';
-import { createEventEmitter } from '../state/events';
+import { createEventEmitter } from '../state/store';
 import { DURATIONS, TIMEOUT_SAFETY_MARGIN, type AnimationType } from './timing';
 import {
   calculateMinimizeTransform,

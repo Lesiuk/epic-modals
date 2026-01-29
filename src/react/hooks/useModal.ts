@@ -1,13 +1,6 @@
-import { useSyncExternalStore, useCallback } from 'react';
-import { openModal, closeModal, openChildModal } from '../../core/state/open-close';
-import { minimizeModal, restoreModal } from '../../core/state/minimize';
-import {
-  getModalsStore,
-  subscribe,
-  triggerAttention,
-  bringToFront,
-} from '../../core/state';
-import { assertModalRegistered } from '../../core/utils/helpers';
+import { useSyncExternalStore, useMemo } from 'react';
+import { getModalsStore, subscribe } from '../../core/state';
+import { createModalOperations } from '../../core/modal-operations';
 import type { ModalId } from '../../core/types';
 
 interface ModalSnapshot {
@@ -22,7 +15,7 @@ function getModalSnapshot(id: ModalId): ModalSnapshot {
   const store = getModalsStore();
   const modal = store.get(id);
 
-  const isOpen = modal !== undefined && !modal.isMinimized;
+  const isOpen = modal?.isOpen === true && !modal.isMinimized;
   const isMinimized = modal?.isMinimized ?? false;
   const isRegistered = modal !== undefined;
 
@@ -45,58 +38,13 @@ function getModalSnapshot(id: ModalId): ModalSnapshot {
 }
 
 export function useModal(id: ModalId) {
-  const getSnapshot = useCallback(() => getModalSnapshot(id), [id]);
-
-  const state = useSyncExternalStore(
-    subscribe,
-    getSnapshot,
-    getSnapshot
-  );
-
-  const open = useCallback((sourceElement: HTMLElement) => {
-    assertModalRegistered(id, 'open');
-    openModal(id, sourceElement);
-  }, [id]);
-
-  const close = useCallback(() => {
-    assertModalRegistered(id, 'close');
-    closeModal(id);
-  }, [id]);
-
-  const minimize = useCallback(() => {
-    assertModalRegistered(id, 'minimize');
-    minimizeModal(id);
-  }, [id]);
-
-  const restore = useCallback(() => {
-    assertModalRegistered(id, 'restore');
-    restoreModal(id);
-  }, [id]);
-
-  const openChild = useCallback((childId: ModalId, sourceElement?: HTMLElement) => {
-    assertModalRegistered(id, 'openChild');
-    openChildModal(childId, id, sourceElement ?? document.body);
-  }, [id]);
-
-  const shake = useCallback(() => {
-    assertModalRegistered(id, 'shake');
-    triggerAttention(id);
-  }, [id]);
-
-  const focus = useCallback(() => {
-    assertModalRegistered(id, 'bringToFront');
-    bringToFront(id);
-  }, [id]);
+  const getSnapshot = useMemo(() => () => getModalSnapshot(id), [id]);
+  const state = useSyncExternalStore(subscribe, getSnapshot, getSnapshot);
+  const ops = useMemo(() => createModalOperations(() => id), [id]);
 
   return {
     ...state,
-    open,
-    close,
-    minimize,
-    restore,
-    openChild,
-    shake,
-    bringToFront: focus,
+    ...ops,
   };
 }
 
@@ -118,14 +66,12 @@ function getModalsSnapshot(): ModalsSnapshot {
 
   const modalsArray = Array.from(store.values());
   const minimizedCount = modalsArray.filter(m => m.isMinimized).length;
-  const openCount = modalsArray.filter(m => !m.isMinimized).length;
+  const openCount = modalsArray.filter(m => !m.isMinimized && m.isOpen).length;
 
   if (modalsSnapshotCache &&
       modalsSnapshotCache.minimizedCount === minimizedCount &&
       modalsSnapshotCache.openCount === openCount) {
-
     lastModalsMap = store;
-    modalsSnapshotCache = { ...modalsSnapshotCache, modals: store };
     return modalsSnapshotCache;
   }
 
@@ -135,9 +81,5 @@ function getModalsSnapshot(): ModalsSnapshot {
 }
 
 export function useModals() {
-  return useSyncExternalStore(
-    subscribe,
-    getModalsSnapshot,
-    getModalsSnapshot
-  );
+  return useSyncExternalStore(subscribe, getModalsSnapshot, getModalsSnapshot);
 }

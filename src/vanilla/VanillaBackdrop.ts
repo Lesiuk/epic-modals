@@ -1,6 +1,6 @@
-import { closeAllModals } from '../core/state/open-close';
+import { closeAllModals } from '../core/state/operations';
 import { subscribe } from '../core/state';
-import { CSS_CLASSES } from '../core/utils/constants';
+import { CSS } from '../core/utils/constants';
 import { hasOpenModals, getBackdropConfig } from '../core/utils/backdrop';
 
 export interface VanillaBackdropOptions {
@@ -25,7 +25,7 @@ export class VanillaBackdrop {
 
   private createDOM(): HTMLElement {
     const backdrop = document.createElement('div');
-    backdrop.className = CSS_CLASSES.backdrop;
+    backdrop.className = CSS.backdrop;
 
     backdrop.addEventListener('click', () => {
       const backdropConfig = getBackdropConfig();
@@ -47,10 +47,10 @@ export class VanillaBackdrop {
     }
 
     if (hasOpenModals()) {
-      this.element.classList.add(CSS_CLASSES.backdropVisible);
+      this.element.classList.add(CSS.backdropVisible);
       this.element.style.display = '';
     } else {
-      this.element.classList.remove(CSS_CLASSES.backdropVisible);
+      this.element.classList.remove(CSS.backdropVisible);
       this.element.style.display = 'none';
     }
   }

@@ -1,8 +1,24 @@
 import type { ModalId, Position } from '../types';
 import { isModalRegistered } from '../state';
 
+export const SYMBOL_PREFIX = '$s:';
+const symbolIds = new Map<symbol, string>();
+let symbolCounter = 0;
+
 export function toDataId(id: ModalId): string {
-  return id;
+  if (typeof id === 'string') return id;
+  let dataId = symbolIds.get(id);
+  if (!dataId) {
+    const desc = id.description ?? 'modal';
+    dataId = `${SYMBOL_PREFIX}${desc}-${symbolCounter++}`;
+    symbolIds.set(id, dataId);
+  }
+  return dataId;
+}
+
+export function _resetSymbolIds(): void {
+  symbolIds.clear();
+  symbolCounter = 0;
 }
 
 export function getModalDialogElement(id: ModalId): HTMLElement | null {

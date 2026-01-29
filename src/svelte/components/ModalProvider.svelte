@@ -3,7 +3,7 @@
   import type { ModalLibraryConfig } from '../../core/config';
   import type { DeepPartial } from '../../core/types';
   import { getConfig, setConfig } from '../../core/config';
-  import { initializeStacking, resetStacking } from '../../core/state/stacking';
+  import { initializeStacking, resetStacking } from '../../core/state/parent-child';
   import { initializeResizeListener, cleanupResizeListener } from '../../core/state/layout';
   import Backdrop from './Backdrop.svelte';
   import { RENDER_ICON_CONTEXT, MODAL_PROVIDER_CONFIG_CONTEXT } from '../context';
