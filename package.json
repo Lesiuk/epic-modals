@@ -1,6 +1,6 @@
 {
   "name": "epic-modals",
-  "version": "1.0.6",
+  "version": "1.0.7",
   "description": "A stunning modal library with macOS-style animations, drag, resize, and dock. Supports Svelte 5, React, and vanilla JS.",
   "keywords": [
     "modal",
